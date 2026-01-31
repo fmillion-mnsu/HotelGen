@@ -1,0 +1,31 @@
+[project]
+name = "hotelgen"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "faker>=40.1.2",
+    "mssql-python>=1.2.0",
+    "numpy>=2.4.2",
+    "pymongo>=4.16.0",
+    "pyyaml>=6.0.3",
+    "rich>=14.3.1",
+    "tqdm>=4.67.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.0"]
+build-backend = "uv_build"
+
+[tool.uv]
+package = true
+
+[tool.uv.build-backend]
+module-name = "xl9045qi.hotelgen"
+modle = "xl9045qi.hotelgen"
+package-dir = "src"
+packages = ["xl9045qi.hotelgen"]
+
+[project.scripts]
+hotelgen = "xl9045qi.hotelgen.__main__:main"
