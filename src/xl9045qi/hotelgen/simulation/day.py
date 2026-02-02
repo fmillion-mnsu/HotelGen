@@ -133,7 +133,8 @@ def process_day(inst: HGSimulationState):
         reactivate_count += len(old_list) - len(inst.state['occupied_customers'][cust_type])
 
     # Step 3: Determine today's occupancy percentage.
-    today_occupancy = lsv(day, 0, 45, -0.4) / 45.0
+    today_occupancy = lsv(day, 0, 45, -0.4) / 45.0 * inst.job['generation'].get('target_occupancy', 0.3)
+    print("Today's occupancy: {:.2f}%".format(today_occupancy * 100))
 
     # Step 4: For each hotel, determine how many rooms to fill today.
     hotel_desired_occupancy = {}
