@@ -1,7 +1,8 @@
 import datetime
 from xl9045qi.hotelgen import data
 from xl9045qi.hotelgen import log_scaled_value as lsv
-from xl9045qi.hotelgen.generators import r, generate_stay_length
+from xl9045qi.hotelgen import normalized_random_bounded as rand
+from xl9045qi.hotelgen.generators import r
 from rich import print
 
 from typing import TYPE_CHECKING
@@ -133,7 +134,16 @@ def process_day(inst: HGSimulationState):
         reactivate_count += len(old_list) - len(inst.state['occupied_customers'][cust_type])
 
     # Step 3: Determine today's occupancy percentage.
-    today_occupancy = lsv(day, 0, 45, -0.4) / 45.0 * inst.job['generation'].get('target_occupancy', 0.3)
+    ramp_up_days = inst.job['generation'].get('ramp_up_days', 45)
+    today_occupancy = lsv(day, 0, ramp_up_days, -0.4) / float(ramp_up_days) * inst.job['generation'].get('target_occupancy', 0.3)
+    # Scale the occupancy by a random factor
+    today_occupancy = rand(
+        today_occupancy, 
+        (inst.job['generation'].get('target_occupancy_sd', 0.05) * lsv(day, 0, ramp_up_days, -0.4)), 
+        min_val=0.0, 
+        max_val=0.5
+    )
+
     print("Today's occupancy: {:.2f}%".format(today_occupancy * 100))
 
     # Step 4: For each hotel, determine how many rooms to fill today.
