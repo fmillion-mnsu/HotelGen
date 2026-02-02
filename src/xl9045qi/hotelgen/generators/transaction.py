@@ -70,13 +70,13 @@ def generate_transaction(self: simulation.HGSimulationState, hotel_id: int, cust
     # Add a failed transaction 5% of the time
     if r.random() < 0.05:
         transaction['payment'] = {
-            "method": r.choice(data.misc['credit_cards']) + " xxxx-" + str(r.randrange(10,9999)).zfill(4),
+            "method": r.choice(data.misc['credit_card_names']) + " xxxx-" + str(r.randrange(10,9999)).zfill(4),
             "amount": OVERALL_TOTAL,
             "status": "DECLINED"    
         }
 
     transaction['payment'] = {
-        "method": r.choice(data.misc['credit_cards']) + " xxxx-" + str(r.randrange(10,9999)).zfill(4),
+        "method": r.choice(data.misc['credit_card_names']) + " xxxx-" + str(r.randrange(10,9999)).zfill(4),
         "amount": OVERALL_TOTAL,
         "status": "APPROVED"    
     }

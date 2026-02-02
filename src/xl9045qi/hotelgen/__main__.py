@@ -1,8 +1,10 @@
 # Generate the database for a hotel chain in a live MSSQL database
 
 import argparse
+import os.path
 
 import mssql_python as mssql
+import tqdm
 from yaml import safe_load
 
 import xl9045qi.hotelgen.simulation as sim
@@ -18,6 +20,8 @@ def main():
     parser = argparse.ArgumentParser(description="Generate the database for a hotel chain in a live MSSQL database")
     parser.add_argument("JOBFILE",nargs="?",default="dev/cis444-s26.job.yaml",help="Path to hotelgen YAML job file for the run")
     parser.add_argument("--drop",action="store_true",help="Drop existing tables before creating new ones")
+    parser.add_argument("-o","--output",type=str,default="hotelgen_output.pkl",help="Path to output pickle file")
+    parser.add_argument("-i","--input",type=str,help="Path to input pickle file to resume from")
 
     args = parser.parse_args()
 
@@ -27,17 +31,21 @@ def main():
     print("Initializing generator...")
     generator = sim.HGSimulationState(job)
 
-    sim.phase0(generator)
-    generator.export("00.pkl")
+    counter = 0
+    for phase in sim.PRE_PHASES:
+        print()
+        print(f"=== Running Phase {counter} ===")
+        phase(generator)
+        #generator.export(f"{counter:02d}.pkl")
+        counter += 1
 
-    sim.phase1(generator)
-    generator.export("01.pkl")
+    for n in tqdm.tqdm(range(generator.state['days_left']),desc="Running Simulation"):
+        sim.process_day(generator)
+        generator.state['days_left'] -= 1
 
-    sim.phase2(generator)
-    generator.export("02.pkl")
-
-    sim.phase3(generator)
-    generator.export("03.pkl")
+    output_path = os.path.abspath(args.output)
+    print("Writing output to " + args.output)
+    generator.export(output_path)
     exit(0)
 
     # Try to connect first
