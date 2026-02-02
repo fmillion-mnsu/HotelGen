@@ -218,14 +218,19 @@ class DatabaseLoader():
             self._conn.commit()
             print("OK.")
 
-    def set_identity_insert(self, table: str, enable: bool):
+    def set_identity_insert(self, table: str, enable: bool) -> bool:
         """Enable or disable IDENTITY_INSERT for the specified table."""
         cursor = self._conn.cursor()
-        if enable:
-            cursor.execute(f"SET IDENTITY_INSERT {table} ON;")
-        else:
-            cursor.execute(f"SET IDENTITY_INSERT {table} OFF;")
-        cursor.connection.commit()
+        try:
+            if enable:
+                cursor.execute(f"SET IDENTITY_INSERT {table} ON;")
+            else:
+                cursor.execute(f"SET IDENTITY_INSERT {table} OFF;")
+            cursor.connection.commit()
+            return True
+        except mssql.exceptions.ProgrammingError as e:
+            return False
+
     def load_data(self, state: dict):
         """Load the data into the database. The `data` dict should be the 'state' item from a HGSimulationState  object."""
         # Ok, let's do this.
@@ -234,7 +239,7 @@ class DatabaseLoader():
 
         # Load room types first.
         for rt in data.room_types.keys():
-            cursor.execute("INSERT INTO room_type (code, description) VALUES (?, ?)", (rt, data.room_types[rt]['name']))
+            cursor.execute("INSERT INTO room_type (id, code, description) VALUES (?, ?, ?)", (data.room_types[rt]['id'], rt, data.room_types[rt]['name']))
         cursor.connection.commit()
 
         # First, we load the hotels.
