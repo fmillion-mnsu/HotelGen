@@ -21,7 +21,7 @@ def main():
     parser.add_argument("--drop",action="store_true",help="Drop existing tables before creating new ones")
     parser.add_argument("-o","--output",type=str,default="hotelgen_output.pkl",help="Path to output pickle file")
     parser.add_argument("-i","--input",type=str,help="Path to input pickle file to resume from")
-    parser.add_argument("--no-database",type=bool,action="store_true",help="Do not load data into the database; instead, only produce the output .pkl file")
+    parser.add_argument("--no-database",action="store_true",help="Do not load data into the database; instead, only produce the output .pkl file")
     args = parser.parse_args()
 
     print("Reading job: " + args.JOBFILE)
