@@ -87,7 +87,7 @@ SCHEMA = {
                 "FOREIGN KEY (property_id) REFERENCES property(id)"
         ]
     },
-    "transaction": {
+    "transact": {
         "id": "INT PRIMARY KEY IDENTITY(1,1)",
         "transaction_date": "DATETIME NOT NULL",
         "customer_id": "INT NOT NULL",
@@ -105,7 +105,7 @@ SCHEMA = {
         "description": "NVARCHAR(192) NOT NULL",
         "amount_per": "DECIMAL(10,2) NOT NULL",
         "quantity": "INT NOT NULL",
-        "_fk": ["FOREIGN KEY (transaction_id) REFERENCES transaction(id)"]
+        "_fk": ["FOREIGN KEY (transaction_id) REFERENCES transact(id)"]
     }
 }
 
@@ -143,8 +143,15 @@ class DatabaseLoader():
         
         print("OK.")
 
+        self._conn = conn
+
+        return True
+
+    def check_tables(self):
+        """Return True if there are any existing user tables in the database, False otherwise."""
+
         # Determine if there are any objects in the database beyond system objects (i.e. any tables)
-        cursor = conn.cursor()
+        cursor = self._conn.cursor()
         cursor.execute("""
             SELECT COUNT(*)
             FROM sys.objects
@@ -157,13 +164,9 @@ class DatabaseLoader():
             existing_tables = row[0]
 
         if existing_tables > 0:
-            print()
-            print("ERROR: The database already contains existing tables.")
-            print()
-            return False
+            return True
 
-        self._conn = conn
-        return True
+        return False
 
     def __init__(self, job: dict):
         self.job = job
@@ -193,7 +196,7 @@ class DatabaseLoader():
 
         # Load room types first.
         for rt in data.room_types.keys():
-            cursor.execute("INSERT INTO room_type (code, description) VALUES (?, ?)", (rt, data.room_types[rt]['description']))
+            cursor.execute("INSERT INTO room_type (code, description) VALUES (?, ?)", (rt, data.room_types[rt]['name']))
         cursor.connection.commit()
 
         # First, we load the hotels.
@@ -264,51 +267,54 @@ class DatabaseLoader():
             ))
         cursor.connection.commit()
         
-        # Lets now load the events
+        # Lets now load the events (events are still dicts, not dataclasses)
         for event in tqdm.tqdm(data['events'], desc="Loading events"):
-            print(f"Inserting event {event.id}...",end="",flush=True)
             if event['event'] == 'checkin':
-                event['event_code'] = 'checkin'
-                event['event_date'] = event['checkin_date']
+                event_code = 'checkin'
+                event_date = event['checkin_date']
             else:
-                event['event_code'] = 'checkout'
-                event['event_date'] = event['checkout_date']
+                event_code = 'checkout'
+                event_date = event['checkout_date']
             cursor.execute("""
                 INSERT INTO event (customer_id, event_code, property_id, event_date)
                 VALUES (?, ?, ?, ?);
             """, (
                 event['customer_id'],
-                event['event_code'],
+                event_code,
                 event['property_id'],
-                event['event_date']
+                event_date
             ))
 
-        # And finally the transactions - this one is.. fun.
+        # And finally the transactions
         transaction: Transaction
         for transaction in tqdm.tqdm(data['transactions'], desc="Loading transactions"):
-            print(f"Inserting transaction {transaction['id']}...",end="",flush=True)
+            # Parse payment method (e.g., "Visa xxxx-1234" -> method="Visa", stub="xxxx-1234")
+            payment_parts = transaction.payment.method.split(' ', 1)
+            payment_method = payment_parts[0]
+            payment_card_stub = payment_parts[1] if len(payment_parts) > 1 else None
+
             cursor.execute("""
-                INSERT INTO transaction (transaction_date, customer_id, hotel_id, amount, payment_method, payment_card_stub)
+                INSERT INTO transact (transaction_date, customer_id, hotel_id, amount, payment_method, payment_card_stub)
                 VALUES (?, ?, ?, ?, ?, ?);
             """, (
-                transaction.transaction_date,
+                transaction.check_out_date,
                 transaction.customer_id,
                 transaction.hotel_id,
-                transaction.amount,
-                transaction.payment_method,
-                transaction.payment.get('payment_card_stub', None) if transaction.payment else None
+                transaction.total,
+                payment_method,
+                payment_card_stub
             ))
             transaction_id = cursor.lastrowid
 
-            for line in transaction['lines']:
+            for line in transaction.line_items:
                 cursor.execute("""
                     INSERT INTO transaction_line (transaction_id, description, amount_per, quantity)
                     VALUES (?, ?, ?, ?);
                 """, (
                     transaction_id,
-                    line['description'],
-                    line['amount_per'],
-                    line['quantity']
+                    line.description,
+                    line.amount_per,
+                    line.quantity
                 ))
         cursor.connection.commit()
     

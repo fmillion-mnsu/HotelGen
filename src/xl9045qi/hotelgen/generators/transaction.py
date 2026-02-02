@@ -81,6 +81,7 @@ def generate_transaction(self: simulation.HGSimulationState, hotel_id: int, cust
 
     return Transaction(
         customer_id=customer,
+        hotel_id=hotel_id,
         check_in_date=(self.state['current_day'] - datetime.timedelta(days=stay_length)).strftime("%Y-%m-%d"),
         check_out_date=self.state['current_day'],
         line_items=line_items,

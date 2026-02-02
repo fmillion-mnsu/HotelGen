@@ -76,6 +76,7 @@ class Payment:
 class Transaction:
     """A financial transaction for a hotel stay."""
     customer_id: int
+    hotel_id: int
     check_in_date: str  # formatted as YYYY-MM-DD
     check_out_date: datetime
     line_items: list[LineItem]
