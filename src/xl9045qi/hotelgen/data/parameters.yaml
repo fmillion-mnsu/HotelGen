@@ -1,0 +1,676 @@
+hotel_regions:
+
+  far_north: 
+    states:
+      - AK
+    pools:
+      indoor: 0.6
+      outdoor: 0.1
+    peak_season: summer
+
+  far_south:
+    states:
+      - HI
+    pools:
+      indoor: 0.4
+      outdoor: 0.8
+
+  northwest: 
+    states:
+      - WA
+      - OR
+      - ID
+      - MT
+    pools:
+      indoor: 0.7
+      outdoor: 0.2
+    peak_season: summer
+
+  west:
+    states:
+      - CA
+      - NV
+      - AZ
+      - UT
+      - CO
+      - NM
+      - WY
+    pools:
+      indoor: 0.3
+      outdoor: 0.75
+
+  midwest:
+    states:
+      - MN
+      - WI
+      - MI
+      - IL
+      - IN
+      - OH
+      - IA
+      - ND
+      - SD
+      - NE
+    pools:
+      indoor: 0.65
+      outdoor: 0.2
+    peak_season: summer
+
+  central:
+    states:
+      - KS
+      - MO
+      - OK
+      - TX
+      - AR
+    pools:
+      indoor: 0.5
+      outdoor: 0.5
+
+  northeast:
+    states:
+      - ME
+      - NH
+      - VT
+      - MA
+      - RI
+      - CT
+      - NY
+      - NJ
+      - PA
+      - DE
+      - MD
+      - DC
+    pools:
+      indoor: 0.75
+      outdoor: 0.15
+    peak_season: summer
+
+  east:
+    states:
+      - VA
+      - WV
+      - NC
+      - SC
+    pools:
+      indoor: 0.67
+      outdoor: 0.25
+    peak_season: summer
+
+  southeast:
+    states:
+      - FL
+      - GA
+      - AL
+      - MS
+      - LA
+      - TN
+      - KY
+    pools:
+      indoor: 0.33
+      outdoor: 0.8
+    peak_season: winter
+
+state_population_ratios: # based on 2023 Population numbers
+  CA: 1.000  # 39.0M - baseline
+  TX: 0.756  # 29.5M
+  FL: 0.573  # 22.4M
+  NY: 0.506  # 19.8M
+  PA: 0.332  # 13.0M
+  IL: 0.326  # 12.7M
+  OH: 0.302  # 11.8M
+  GA: 0.278  # 10.9M
+  NC: 0.271  # 10.6M
+  MI: 0.258  # 10.1M
+  NJ: 0.239  # 9.3M
+  VA: 0.222  # 8.6M
+  WA: 0.199  # 7.8M
+  AZ: 0.189  # 7.4M
+  MA: 0.179  # 7.0M
+  TN: 0.179  # 7.0M
+  IN: 0.175  # 6.8M
+  MO: 0.159  # 6.2M
+  MD: 0.158  # 6.2M
+  WI: 0.151  # 5.9M
+  CO: 0.150  # 5.9M
+  MN: 0.147  # 5.7M
+  SC: 0.134  # 5.2M
+  AL: 0.130  # 5.1M
+  LA: 0.119  # 4.6M
+  KY: 0.117  # 4.6M
+  OR: 0.108  # 4.2M
+  OK: 0.103  # 4.0M
+  CT: 0.093  # 3.6M
+  UT: 0.087  # 3.4M
+  IA: 0.082  # 3.2M
+  NV: 0.081  # 3.2M
+  AR: 0.078  # 3.0M
+  MS: 0.076  # 3.0M
+  KS: 0.075  # 2.9M
+  NM: 0.054  # 2.1M
+  NE: 0.051  # 2.0M
+  ID: 0.050  # 2.0M
+  WV: 0.046  # 1.8M
+  HI: 0.037  # 1.4M
+  NH: 0.036  # 1.4M
+  ME: 0.036  # 1.4M
+  MT: 0.029  # 1.1M
+  RI: 0.028  # 1.1M
+  DE: 0.027  # 1.0M
+  SD: 0.024  # 0.9M
+  ND: 0.021  # 0.8M
+  AK: 0.019  # 0.7M
+  DC: 0.017  # 0.7M
+  VT: 0.017  # 0.6M
+  WY: 0.015  # 0.6M
+
+state_price_multipliers:
+
+    # Premium markets (>1.0)
+    HI:             # Hawaii - tourism premium
+      mean: 1.45
+      sd: 0.10
+    NY:             # New York - urban premium
+      mean: 1.25
+      sd: 0.12
+    MA:             # MAssachusetts - Boston market
+      mean: 1.15
+      sd: 0.08
+    DC:             # DC - government/tourism
+      mean: 1.10
+      sd: 0.08
+    NJ:             # New Jersey - NYC spillover
+      mean: 1.05
+      sd: 0.08
+    CT:             # Connecticut
+      mean: 1.05
+      sd: 0.07
+    WA:             # Washington - Seattle market
+      mean: 1.00
+      sd: 0.08
+    CO:             # Colorado - ski/tourism
+      mean: 1.00
+      sd: 0.10
+    FL:             # Florida - high volume, variable
+      mean: 0.95
+      sd: 0.12
+    AZ:             # Arizona - Scottsdale vs rural
+      mean: 0.95
+      sd: 0.10
+    NV:             # Nevada - Vegas skews this (handled by tourism multiplier)
+      mean: 0.90
+      sd: 0.15
+    IL:             # Illinois - Chicago market
+      mean: 0.90
+      sd: 0.08
+    CA:             # California - baseline
+      mean: 1.00
+      sd: 0.10
+
+    # Mid-range markets (0.75-0.90)
+    OR:
+      mean: 0.88
+      sd: 0.07
+    MD:
+      mean: 0.88
+      sd: 0.08
+    VA:
+      mean: 0.85
+      sd: 0.08
+    PA:
+      mean: 0.85
+      sd: 0.08
+    MN:
+      mean: 0.82
+      sd: 0.06
+    UT:
+      mean: 0.82
+      sd: 0.08
+    NC:
+      mean: 0.80
+      sd: 0.07
+    GA:             # Atlanta market
+      mean: 0.80
+      sd: 0.08  
+    MI:
+      mean: 0.78
+      sd: 0.06
+    WI:
+      mean: 0.78
+      sd: 0.06
+    SC:             # Charleston/Myrtle Beach
+      mean: 0.78
+      sd: 0.08  
+    TN:             # Nashville tourism
+      mean: 0.78
+      sd: 0.08  
+    NH:
+      mean: 0.78
+      sd: 0.06
+    VT:             # Ski areas
+      mean: 0.78
+      sd: 0.07  
+    ME:
+      mean: 0.75
+      sd: 0.06
+    RI:
+      mean: 0.75
+      sd: 0.06
+    DE:
+      mean: 0.75
+      sd: 0.05
+
+    # Value markets (0.60-0.75)
+    LA:             # New Orleans vs rural
+      mean: 0.75
+      sd: 0.10
+    MO:             # Branson/KC/STL
+      mean: 0.72
+      sd: 0.08
+    OH:
+      mean: 0.72
+      sd: 0.06
+    IN:
+      mean: 0.70
+      sd: 0.05
+    KY:
+      mean: 0.70
+      sd: 0.06
+    NM:
+      mean: 0.70
+      sd: 0.07
+    TX:             # Huge variation (Austin vs rural)
+      mean: 0.70
+      sd: 0.10
+    ID:
+      mean: 0.70
+      sd: 0.07
+    MT:             # Tourist areas vary
+      mean: 0.70
+      sd: 0.08
+    IA:
+      mean: 0.68
+      sd: 0.05
+    KS:
+      mean: 0.65
+      sd: 0.05
+    NE:
+      mean: 0.65
+      sd: 0.05
+    AL:
+      mean: 0.65
+      sd: 0.06
+    AK:             # Remote premium despite low population
+      mean: 0.85
+      sd: 0.10
+
+    # Budget markets (<0.65)
+    AR:
+      mean: 0.62
+      sd: 0.05
+    OK:
+      mean: 0.62
+      sd: 0.05
+    MS:
+      mean: 0.60
+      sd: 0.05
+    WV:
+      mean: 0.60
+      sd: 0.05
+    SD:
+      mean: 0.62
+      sd: 0.06
+    ND:
+      mean: 0.62
+      sd: 0.05
+    WY:
+      mean: 0.65
+      sd: 0.06  
+
+tourist_regions:
+  las_vegas: 
+    main_state: NV
+    zip_prefixes:
+      #- '889'
+      - '890'
+      - '891'
+    multiplier:
+      mean: 1.40
+      sd: 0.15
+    resort_fee:
+      mean: 35.00
+      sd: 5.00
+      probability: 0.8
+    rooms:
+      total_rooms:
+        mean: 3000
+        sd: 1000
+        min: 1500
+        max: 5000
+
+  orlando: 
+    main_state: FL
+    zip_prefixes:
+      - '327'
+      - '328'
+      - '347'
+    multiplier:
+      mean: 1.30
+      sd: 0.10
+    resort_fee:
+      mean: 25.00
+      sd: 4.00
+      probability: 0.6
+
+  miami_beach: 
+    main_state: FL
+    zip_prefixes:
+      - '331'
+      - '332'
+      - '333'
+    multiplier:
+      mean: 1.50
+      sd: 0.12
+
+  tampa_bay: 
+    main_state: FL
+    zip_prefixes:
+      - '335'
+      - '336'
+    multiplier:
+      mean: 1.15
+      sd: 0.08
+
+  myrtle_beach: 
+    main_state: SC
+    zip_prefixes:
+      - '295'
+    multiplier:
+      mean: 1.20
+      sd: 0.08
+
+  scottsdale: 
+    main_state: AZ
+    zip_prefixes:
+      - '852'
+      - '853'
+    multiplier:
+      mean: 1.45
+      sd: 0.10
+
+  new_orleans: 
+    main_state: LA
+    zip_prefixes:
+      - '700'
+      - '701'
+    multiplier:
+      mean: 1.25
+      sd: 0.10
+
+  nashville: 
+    main_state: TN
+    zip_prefixes:
+      - '370'
+      - '371'
+      - '372'
+    multiplier:
+      mean: 1.20
+      sd: 0.08
+
+  branson:          # Budget-friendly tourism
+    main_state: MO
+    zip_prefixes:
+      - '656'
+      - '657'
+    multiplier:
+      mean: 1.10
+      sd: 0.06
+
+  aspen_vail:       # Luxury ski
+    main_state: CO
+    zip_prefixes:
+      - '814'
+      - '816'
+    multiplier:
+      mean: 1.80
+      sd: 0.15
+
+  breckenridge:
+    main_state: CO
+    zip_prefixes:
+      - '804'
+      - '805'
+    multiplier:
+      mean: 1.50
+      sd: 0.12
+
+  lake_tahoe: 
+    main_state: CA
+    zip_prefixes:
+      - '961'
+    multiplier:
+      mean: 1.40
+      sd: 0.12
+    resort_fee:
+      mean: 20.00
+      sd: 5.00
+      probability: 0.4
+
+  wisconsin_dells: 
+    main_state: WI
+    zip_prefixes:
+      - '539'
+    multiplier:
+      mean: 1.15
+      sd: 0.06
+
+  hawaii:           # Already accounted for in state multiplier
+    main_state: HI
+    multiplier:
+      mean: 1.00
+      sd: 0.08
+    resort_fee:
+      mean: 30.00
+      sd: 5.00
+      probability: 0.7
+
+hotel_types:
+  motel:
+    id: 1 
+    name: "Motel"
+    base_price:
+      mean: 69.00
+      sd: 12.00
+    rooms:
+      total_rooms:
+        mean: 40
+        sd: 20
+        min: 25
+        max: 80
+      distribution:
+        1kn:
+          mean: 0.4
+          sd: 0.1
+        2qn:
+          mean: 0.6
+          sd: 0.1
+
+  hotel:
+    id: 2
+    name: "Hotel"
+    base_price:
+      mean: 89.00
+      sd: 15.00
+    rooms:
+      total_rooms:
+        mean: 100
+        sd: 30
+        min: 60
+        max: 250
+      distribution:
+        1kn:  
+          mean: 0.3
+          sd: 0.1
+        2qn:
+          mean: 0.5
+          sd: 0.1
+        2qs:
+          mean: 0.15
+          sd: 0.05
+        es:
+          mean: 0.05
+          sd: 0.02
+
+  resort:
+    id: 3
+    name: "Resort"
+    base_price:
+      mean: 129.00
+      sd: 25.00
+    rooms:
+      total_rooms:
+        mean: 300
+        sd: 100
+        min: 150
+        max: 1000
+      distribution:
+        1kn:
+          mean: 0.28
+          sd: 0.1
+        2qn:
+          mean: 0.4
+          sd: 0.1
+        2qs:
+          mean: 0.2
+          sd: 0.05
+        es:
+          mean: 0.1
+          sd: 0.03
+        ps:
+          mean: 0.02
+          sd: 0.01
+
+room_types:
+  1kn:
+    name: "1 King Bed Room"
+    price_multiplier:
+      mean: 1.0
+      sd: 0.05
+  2qn:
+    name: "2 Queen Beds Room"
+    price_multiplier:
+      mean: 1.1
+      sd: 0.05
+  2qs:
+    name: "2 Queen Suite"
+    price_multiplier:
+      mean: 1.3
+      sd: 0.07
+  es:
+    name: "Executive Suite"
+    price_multiplier:
+      mean: 2.0
+      sd: 0.1
+    only:
+      - hotel
+      - resort
+  ps:
+    name: "Penthouse Suite"
+    price_multiplier:
+      mean: 3.5
+      sd: 0.25
+    only:
+      - resort
+
+corporation_suffixes:
+  - "Hospitality Group"
+  - "Hotel Group"
+  - "Resorts International"
+  - "Lodging Corporation"
+  - "Inns and Suites"
+  - "Worldwide Hotels"
+  - "Global Hospitality"
+  - "Premier Hotels"
+
+customer_archetypes:
+  rare_leisure:
+    percentage: 0.70  # 70% of customer pool
+    stays_per_year_mean: 1
+    stays_per_year_sd: 0.5
+    stay_duration_weights:
+      '1': 0.3
+      '2': 0.4
+      '3': 0.2
+      '4-7': 0.1
+    min_gap_days: 30
+    incidental_probability: 0.3  # Low
+
+  regular_leisure:
+    percentage: 0.15
+    stays_per_year_mean: 3
+    stays_per_year_sd: 1
+    stay_duration_weights:
+      '1': 0.2
+      '2': 0.3
+      '3': 0.25
+      '4-7': 0.2
+      '8-14': 0.05
+    min_gap_days: 14
+    incidental_probability: 0.5  # Medium
+
+  business:
+    percentage: 0.10
+    stays_per_year_mean: 12
+    stays_per_year_sd: 5
+    stay_duration_weights:
+      '1': 0.5
+      '2': 0.3
+      '3': 0.15
+      '4-7': 0.05
+    min_gap_days: 3
+    incidental_probability: 0.6  # Medium-High
+
+  corporate:
+    percentage: 0.04
+    stays_per_year_mean: 25
+    stays_per_year_sd: 10
+    stay_duration_weights:
+      '1': 0.6
+      '2': 0.3
+      '3': 0.1
+    min_gap_days: 1
+    incidental_probability: 0.8  # High
+
+  road_warrior:
+    percentage: 0.01
+    stays_per_year_mean: 60
+    stays_per_year_sd: 20
+    stay_duration_weights:
+      '1': 0.7
+      '2': 0.25
+      '3': 0.05
+    min_gap_days: 1
+    incidental_probability: 0.4  # Low-Medium (efficient travelers)
+
+customer_email_domains:
+  - "gmail.com"
+  - "yahoo.com"
+  - "outlook.com"
+  - "hotmail.com"
+  - "aol.com"
+  - "icloud.com"
+  - "mail.com"
+  - "protonmail.com"
+  - "usermail.com"
+  - "email.com"
+  - "charter.net"
+  - "xfinity.com"
+  - "timewarner.net"
+  - "live.com"
+  - "me.com"
+  - "att.net"
+  - "verizon.net"
+  - "comcast.net"
+  - "cox.net"
+  - "sbcglobal.net"
+  - "bellsouth.net"
