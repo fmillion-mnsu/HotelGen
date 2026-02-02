@@ -7,6 +7,7 @@ import tqdm
 from yaml import safe_load
 
 import xl9045qi.hotelgen.simulation as sim
+from xl9045qi.hotelgen.loaders import mssql
 
 def main():
 
@@ -27,11 +28,30 @@ def main():
     print("Reading job: " + args.JOBFILE)
     job = safe_load(open(args.JOBFILE,"r"))["job"]
 
+    output_path = os.path.abspath(args.output)
+    print("Output will be written to: " + output_path)
+
     if args.input is not None:
         input_path = os.path.abspath(args.input)
         print("Resuming from input file: " + input_path)
         generator = sim.HGSimulationState(job)
         generator.import_pkl(input_path)
+
+    if not args.no_database:
+        db = mssql.DatabaseLoader(job)
+        try:
+            db.connect()
+            if args.drop:
+                print("Dropping existing tables...")
+                db.drop_all_tables()
+            print("Creating database tables...")
+            db.make_schema()
+
+        except Exception as e:
+            print("ERROR: Could not connect to database or create tables.")
+            print("To generate data without loading to a database, use --no-database.")
+            print(str(e))
+            exit(1)
 
     print("Initializing generator...")
     generator = sim.HGSimulationState(job)
@@ -48,8 +68,7 @@ def main():
         sim.process_day(generator)
         generator.state['days_left'] -= 1
 
-    output_path = os.path.abspath(args.output)
-    print("Writing output to " + args.output)
+    print("Writing output to " + output_path)
     generator.export(output_path)
     
     if args.no_database:
@@ -59,7 +78,10 @@ def main():
         print(f"  hotelgen -i {output_path}\n")
         exit(0)
 
-    exit(0)
+    else:
+        print("Loading data into database...")
+        db.load_data(generator.state)
+        exit(0)
     
 if __name__ == "__main__":
     main()

@@ -61,7 +61,7 @@ def phase1(inst: HGSimulationState):
     # Assign an incrementing ID to each hotel
     r.shuffle(inst.state['hotels'])
     for idx, hotel in enumerate(inst.state['hotels']):
-        hotel['id'] = idx + 1
+        hotel.id = idx + 1
 
     print(f"{len(inst.state['hotels'])} hotels generated successfully.")
     inst.state['last_phase'] = 1

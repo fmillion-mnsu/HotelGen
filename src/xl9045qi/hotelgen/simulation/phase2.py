@@ -78,12 +78,12 @@ def phase2(inst: HGSimulationState):
         
     r.shuffle(inst.state['customers'])
     for idx, customer in enumerate(inst.state['customers']):
-        customer['id'] = idx + 1
+        customer.id = idx + 1
 
     print(f"{len(inst.state['customers'])} customers generated successfully.")
 
     # Total of all hotel rooms
-    total_room_count = sum([sum([room_info['count'] for room_info in hotel['rooms'].values()]) for hotel in inst.state['hotels']])
+    total_room_count = sum([sum([room_info.count for room_info in hotel.rooms.values()]) for hotel in inst.state['hotels']])
     print(f"There are a total of {total_room_count} rooms across all hotels generated.")
 
     inst.state['last_phase'] = 2

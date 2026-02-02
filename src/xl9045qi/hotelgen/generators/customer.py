@@ -3,6 +3,7 @@
 from xl9045qi.hotelgen import data
 from xl9045qi.hotelgen.generators import r, generate_street_number, generate_us_phone
 from xl9045qi.hotelgen.generators import get_first_name, get_last_name, get_street_name
+from xl9045qi.hotelgen.models import Customer
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -19,16 +20,16 @@ def init_customer_cache(inst: 'HGSimulationState'):
     inst.state['cache']['email_domains'] = data.customer_email_domains
 
 
-def generate_customer(inst: 'HGSimulationState', customer_type: str, state: str = "MN") -> dict:
+def generate_customer(inst: 'HGSimulationState', customer_type: str, state: str = "MN") -> Customer:
     """Generate a single random customer.
 
     Args:
-        customer_type (str): The type of customer to generate. Must be one of the keys in ["hotel_types"].
+        customer_type (str): The type of customer to generate. Must be one of the customer archetypes.
         state (str, optional): The US state code to generate the customer in. Defaults to "MN".
 
     Returns:
-        dict: A dictionary containing the generated customer's details.
-"""
+        Customer: A Customer dataclass instance.
+    """
 
     # The customer type must be a valid type - default from "rare_leisure", "regular_leisure", "business", "corporate", "road_warrior"
     try:
@@ -68,16 +69,14 @@ def generate_customer(inst: 'HGSimulationState', customer_type: str, state: str 
     email = email_fmt.format(**email_parts).lower()
 
     # Final response assembly
-    response = {
-        "fname": fname,
-        "lname": lname,
-        "street": f"{generate_street_number()} {get_street_name()}",
-        "city": csz[0],
-        "state": csz[1],
-        "zip": csz[2],
-        "email": email,
-        "phone": generate_us_phone(),
-        "type": customer_type,
-    }
-
-    return response
+    return Customer(
+        fname=fname,
+        lname=lname,
+        street=f"{generate_street_number()} {get_street_name()}",
+        city=csz[0],
+        state=csz[1],
+        zip=csz[2],
+        email=email,
+        phone=generate_us_phone(),
+        type=customer_type,
+    )

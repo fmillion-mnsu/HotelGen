@@ -21,7 +21,7 @@ def phase3(inst: HGSimulationState):
     #   key: dict 
     # with key = room type, value = empty list.
     inst.state['occupied_rooms'] = {
-        hotel['id']: {room_type: [] for room_type in hotel['rooms'].keys()}
+        hotel.id: {room_type: [] for room_type in hotel.rooms.keys()}
         for hotel in inst.state['hotels']
     }
     
@@ -41,20 +41,20 @@ def phase3(inst: HGSimulationState):
     inst.state['cache']['customers_by_archetype'] = {}
     for archetype in data.customer_archetypes.keys():
         inst.state['cache']['customers_by_archetype'][archetype] = [
-            customer['id']
+            customer.id
             for customer in inst.state['customers']
-            if customer['type'] == archetype
+            if customer.type == archetype
         ]
 
     # All customers by ID
     inst.state['cache']['customers_by_id'] = {
-        customer['id']: customer
+        customer.id: customer
         for customer in inst.state['customers']
     }
 
     # All hotels by ID
     inst.state['cache']['hotels_by_id'] = {
-        hotel['id']: hotel
+        hotel.id: hotel
         for hotel in inst.state['hotels']
     }
 

@@ -20,8 +20,8 @@ def select_room_type(inst: HGSimulationState, hotel_id: int):
     # First, get this hotel's total room counts
     hotel = inst.state['cache']['hotels_by_id'][hotel_id]
     room_type_counts = {
-        rt: hotel['rooms'][rt]['count']
-        for rt in hotel['rooms'].keys()
+        rt: hotel.rooms[rt].count
+        for rt in hotel.rooms.keys()
     }
 
     # Now we have to figure out how many of each type of room is occupied
@@ -82,11 +82,13 @@ def process_day(inst: HGSimulationState):
         state.
     """
 
+    # Set the initial day number, or advance it
     if 'current_day_num' not in inst.state:
         inst.state['current_day_num'] = 1
     else:
         inst.state['current_day_num'] += 1
     
+    # Advance the datetime object too
     inst.state['current_day'] += datetime.timedelta(days=1)
     day = inst.state['current_day_num']
 
@@ -151,7 +153,7 @@ def process_day(inst: HGSimulationState):
     # Step 4: For each hotel, determine how many rooms to fill today.
     hotel_desired_occupancy = {}
     for hotel in inst.state['hotels']:
-        hotel_desired_occupancy[hotel['id']] = int(round(sum([room_info['count'] for room_info in hotel['rooms'].values()]) * today_occupancy))
+        hotel_desired_occupancy[hotel.id] = int(round(sum([room_info.count for room_info in hotel.rooms.values()]) * today_occupancy))
 
     total_customers_needed = sum(hotel_desired_occupancy.values())
     #print(f"Day {day}: Need {total_customers_needed} customers.")
@@ -224,7 +226,7 @@ def process_day(inst: HGSimulationState):
                 except IndexError:  
                     # No more customers. Continue
                     continue
-                customer_type = inst.state['cache']['customers_by_id'][this_cid]['type']
+                customer_type = inst.state['cache']['customers_by_id'][this_cid].type
                 customer_archetype = data.customer_archetypes[customer_type]
                 customer_archetype_weights = customer_archetype['stay_duration_weights']
                 stay_length = generate_stay_length(customer_archetype_weights)
@@ -240,5 +242,18 @@ def process_day(inst: HGSimulationState):
 
     print(f"Day {day} complete: {checkin_count} c-in, {checkout_count} c-out, {reactivate_count} react, {today_occupancy * 100:.2f}% occ")
 
+    if 'day_log' not in inst.state:
+        inst.state['day_log'] = []
+
+    inst.state['day_log'].append({
+        'day_num': day,
+        'date': inst.state['current_day'].strftime('%Y-%m-%d'),
+        'checkins': checkin_count,
+        'checkouts': checkout_count,
+        'reactivations': reactivate_count,
+        'occupancy': today_occupancy,
+    })
+
     return
+
 

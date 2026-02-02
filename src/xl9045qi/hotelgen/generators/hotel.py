@@ -3,6 +3,7 @@
 from xl9045qi.hotelgen import data
 from xl9045qi.hotelgen import normalized_random_bounded as rand
 from xl9045qi.hotelgen.generators import generate_street_number, generate_us_phone, r, f
+from xl9045qi.hotelgen.models import Hotel, RoomInfo
 
 def generate_hotel(hotel_type: str, state: str = "MN", tourist_region: str = "") -> dict:
     """Generate a single random hotel.
@@ -173,16 +174,16 @@ def generate_hotel(hotel_type: str, state: str = "MN", tourist_region: str = "")
     base_price = base_price * price_multiplier
 
     # For each room type, figure out its actual cost.
-    for room_type in room_distribution.keys():
+    for room_type in list(room_distribution.keys()):
         room_type_obj = data.room_types.get(room_type, {})
         room_type_multiplier = room_type_obj.get('price_multiplier', {}).get('mean', 1)
         room_type_multiplier_sd = room_type_obj.get('price_multiplier', {}).get('sd', 0.0)
         room_type_multiplier_val = rand(room_type_multiplier, room_type_multiplier_sd, min_val=0.5)
-        # Store the final price for this room type
-        room_distribution[room_type] = {
-            "count": room_distribution[room_type],
-            "price": round(base_price * room_type_multiplier_val, 2)
-        }
+        # Store the final price for this room type as RoomInfo
+        room_distribution[room_type] = RoomInfo(
+            count=room_distribution[room_type],
+            price=round(base_price * room_type_multiplier_val, 2)
+        )
 
     # If we have a resort fee, determine what it will be
     if tourist_region and hotel_type_obj['name'].lower() == "resort":
@@ -201,20 +202,18 @@ def generate_hotel(hotel_type: str, state: str = "MN", tourist_region: str = "")
             resort_fee = 0.0
 
     # Final response assembly
-    response = {
-        "name": hotel_name,
-        "street": f"{generate_street_number()} {f.street_name()}",
-        "city": csz[0],
-        "state": csz[1],
-        "zip": csz[2],
-        "email": email,
-        "website": website,
-        "phone": generate_us_phone(),
-        "type": hotel_type_obj['name'],
-        "tourist_region": tourist_region or None,
-        "rooms": room_distribution,
-        "base_price": base_price,
-        "resort_fee": resort_fee if tourist_region and hotel_type_obj['name'].lower() == "resort" else 0.0
-    }
-
-    return response
+    return Hotel(
+        name=hotel_name,
+        street=f"{generate_street_number()} {f.street_name()}",
+        city=csz[0],
+        state=csz[1],
+        zip=csz[2],
+        email=email,
+        website=website,
+        phone=generate_us_phone(),
+        type=hotel_type_obj['name'],
+        tourist_region=tourist_region or None,
+        rooms=room_distribution,
+        base_price=base_price,
+        resort_fee=resort_fee if tourist_region and hotel_type_obj['name'].lower() == "resort" else 0.0
+    )

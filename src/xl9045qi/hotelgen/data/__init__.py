@@ -14,5 +14,6 @@ _data['zipcodes_flat'] = {zc: state_code for state_code, zc_dict in _data['zipco
 for key, value in _data.items():
     globals()[key] = value
 
-def render_hotel_address(hotel: dict) -> str:
-    return f"{hotel['name']}\n{hotel['street']}\n{hotel['city']}, {hotel['state']} {hotel['zip']}\nEmail: {hotel['email']}\nWebsite: {hotel['website']}\nPhone: {hotel['phone']}"
+def render_hotel_address(hotel) -> str:
+    """Render a hotel's address as a formatted string."""
+    return f"{hotel.name}\n{hotel.street}\n{hotel.city}, {hotel.state} {hotel.zip}\nEmail: {hotel.email}\nWebsite: {hotel.website}\nPhone: {hotel.phone}"

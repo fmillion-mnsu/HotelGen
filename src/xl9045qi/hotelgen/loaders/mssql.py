@@ -1,4 +1,8 @@
 import mssql_python as mssql
+import tqdm
+
+from xl9045qi.hotelgen import data
+from xl9045qi.hotelgen.models import Hotel, Customer, Transaction
 
 # Property example:
 # {
@@ -49,6 +53,7 @@ SCHEMA = {
     },
     "room_type": {
         "id": "INT PRIMARY KEY IDENTITY(1,1)",
+        "code": "VARCHAR(10) NOT NULL",
         "description": "NVARCHAR(192) NOT NULL",
     },
     "property_rooms": {
@@ -93,10 +98,28 @@ SCHEMA = {
         "_fk": ["FOREIGN KEY (customer_id) REFERENCES customer(id)",
                 "FOREIGN KEY (hotel_id) REFERENCES property(id)"
         ]
+    },
+    "transaction_line": {
+        "id": "INT PRIMARY KEY IDENTITY(1,1)",
+        "transaction_id": "INT NOT NULL",
+        "description": "NVARCHAR(192) NOT NULL",
+        "amount_per": "DECIMAL(10,2) NOT NULL",
+        "quantity": "INT NOT NULL",
+        "_fk": ["FOREIGN KEY (transaction_id) REFERENCES transaction(id)"]
     }
 }
 
 class DatabaseLoader():
+    
+    def drop_all_tables(self):
+        cursor = self._conn.cursor()
+        cursor.execute("""
+            DECLARE @sql NVARCHAR(MAX) = N'';
+            SELECT @sql += N'DROP TABLE ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name) + ';' + CHAR(13)
+            FROM sys.tables;
+            EXEC sp_executesql @sql;
+        """)
+        self._conn.commit()
     
     def connect(self) -> bool:
         # Try to connect first
@@ -161,3 +184,133 @@ class DatabaseLoader():
             cursor.execute(create_sql)
             self._conn.commit()
             print("OK.")
+
+    def load_data(self, data: dict):
+        """Load the data into the database. The `data` dict should be the 'state' item from a HGSimulationState  object."""
+        # Ok, let's do this.
+
+        cursor = self._conn.cursor()
+
+        # Load room types first.
+        for rt in data.room_types.keys():
+            cursor.execute("INSERT INTO room_type (code, description) VALUES (?, ?)", (rt, data.room_types[rt]['description']))
+        cursor.connection.commit()
+
+        # First, we load the hotels.
+        hotel: Hotel
+        for hotel in tqdm.tqdm(data['hotels'], desc="Loading properties"):
+            print(f"Inserting hotel {hotel.id}...",end="",flush=True)
+            cursor.execute("""
+                INSERT INTO property (id, name, street_address, city, state, zip, email, website, phone)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+            """, (
+                hotel.id,
+                hotel.name,
+                hotel.street,
+                hotel.city,
+                hotel.state,
+                hotel.zip,
+                hotel.email,
+                hotel.website,
+                hotel.phone
+            ))
+            property_id = cursor.lastrowid
+
+            for rt, room_info in hotel.rooms.items():
+                # First, ensure the room type exists
+                cursor.execute("""
+                    SELECT id FROM room_type WHERE description = ?;
+                """, (rt,))
+                row = cursor.fetchone()
+                if row is None:
+                    # Insert it
+                    cursor.execute("""
+                        INSERT INTO room_type (description) VALUES (?);
+                    """, (rt,))
+                    room_type_id = cursor.lastrowid
+                else:
+                    room_type_id = row[0]
+                
+                # Now insert the property_rooms record
+                cursor.execute("""
+                    INSERT INTO property_rooms (property_id, room_type_id, count, price, resort_fee)
+                    VALUES (?, ?, ?, ?, ?);
+                """, (
+                    property_id,
+                    room_type_id,
+                    room_info.count,
+                    room_info.price,
+                    hotel.resort_fee
+                ))
+        cursor.connection.commit()
+            
+        # Now, load customers
+        cust: Customer
+        for cust in tqdm.tqdm(data['customers'], desc="Loading customers"):
+            print(f"Inserting customer {cust.id}...",end="",flush=True)
+            cursor.execute("""
+                INSERT INTO customer (id, first_name, last_name, email, phone, address, city, state, zip)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """, (
+                cust.id,
+                cust.fname,
+                cust.lname,
+                cust.email,
+                cust.phone,
+                cust.street,
+                cust.city,
+                cust.state,
+                cust.zip
+            ))
+        cursor.connection.commit()
+        
+        # Lets now load the events
+        for event in tqdm.tqdm(data['events'], desc="Loading events"):
+            print(f"Inserting event {event.id}...",end="",flush=True)
+            if event['event'] == 'checkin':
+                event['event_code'] = 'checkin'
+                event['event_date'] = event['checkin_date']
+            else:
+                event['event_code'] = 'checkout'
+                event['event_date'] = event['checkout_date']
+            cursor.execute("""
+                INSERT INTO event (customer_id, event_code, property_id, event_date)
+                VALUES (?, ?, ?, ?);
+            """, (
+                event['customer_id'],
+                event['event_code'],
+                event['property_id'],
+                event['event_date']
+            ))
+
+        # And finally the transactions - this one is.. fun.
+        transaction: Transaction
+        for transaction in tqdm.tqdm(data['transactions'], desc="Loading transactions"):
+            print(f"Inserting transaction {transaction['id']}...",end="",flush=True)
+            cursor.execute("""
+                INSERT INTO transaction (transaction_date, customer_id, hotel_id, amount, payment_method, payment_card_stub)
+                VALUES (?, ?, ?, ?, ?, ?);
+            """, (
+                transaction.transaction_date,
+                transaction.customer_id,
+                transaction.hotel_id,
+                transaction.amount,
+                transaction.payment_method,
+                transaction.payment.get('payment_card_stub', None) if transaction.payment else None
+            ))
+            transaction_id = cursor.lastrowid
+
+            for line in transaction['lines']:
+                cursor.execute("""
+                    INSERT INTO transaction_line (transaction_id, description, amount_per, quantity)
+                    VALUES (?, ?, ?, ?);
+                """, (
+                    transaction_id,
+                    line['description'],
+                    line['amount_per'],
+                    line['quantity']
+                ))
+        cursor.connection.commit()
+    
+        print("Data load completed!")
+    

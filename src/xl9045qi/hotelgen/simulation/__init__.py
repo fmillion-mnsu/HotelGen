@@ -63,6 +63,7 @@ class HGSimulationState:
         checkin_event = {
             'event': 'checkin',
             'customer_id': customer_id,
+            'property_id': hotel_id,
             'checkin_date': self.state['current_day'],
             'checkout_date': self.state['current_day'] + datetime.timedelta(days=stay_length),
             'room_type': room_type
@@ -78,10 +79,10 @@ class HGSimulationState:
 
         customer_data = self.state['cache']['customers_by_id'][customer_id]
         
-        self.state['occupied_customers'][customer_data['type']].append((
+        self.state['occupied_customers'][customer_data.type].append((
             customer_id,
             hotel_id,
-            self.state['current_day'] + datetime.timedelta(days=stay_length) + datetime.timedelta(days=data.customer_archetypes[customer_data['type']].get('min_gap_days', 14))
+            self.state['current_day'] + datetime.timedelta(days=stay_length) + datetime.timedelta(days=data.customer_archetypes[customer_data.type].get('min_gap_days', 14))
         ))
 
     def checkout(self, hotel_id: int, booking: tuple, force: bool = False):
@@ -119,6 +120,7 @@ class HGSimulationState:
         # Add checkout event
         checkout_event = {
             'event': 'checkout',
+            'property_id': hotel_id,
             'customer_id': booking[0],
             'checkout_date': self.state['current_day'],
             'room_type': booking[3]

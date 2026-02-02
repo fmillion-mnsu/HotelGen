@@ -14,11 +14,11 @@ This program is being developed in phases:
       - [x] Room rates
       - [x] Resort fees
 * **Phase 2:** Expand with generation of:
-    - [ ] Hotel reviews (AI generated)
     - [ ] Incidental charges (e.g. a retail-style marketplace)
     - [ ] Room service
     - [ ] Special resort charges - fitness room/spa/massage fees, concierge, tips...
 * **Phase 3:** Expand with generation of:
+    - [ ] Hotel reviews (AI generated)
     - [ ] Door lock system backend data (unlock events, failed events)
     - [ ] Damage fees (e.g. smoking in the room)
     - [ ] Specific anomalies - hotel underperformance, holiday surge, natural disaster
