@@ -50,20 +50,19 @@ def phase2(inst: HGSimulationState):
 
     with tqdm.tqdm(total=total_customer_count, desc="Generating customers") as pbar:
         for _ in range(total_customer_count):
-            while True:
+            # Get available states (count > 0), fallback to all states if exhausted
+            available_states = [s for s, count in cdist.items() if count > 0]
+            if available_states:
+                this_state = r.choice(available_states)
+            else:
                 this_state = r.choice(list(cdist.keys()))
-                if cdist[this_state] <= 0:
-                    continue
-                break
-            # Pick type based on c_class_counts
-            while True:
-                this_type = r.randint(1, len(c_classes))
-                
-                this_type = c_classes[this_type - 1]
 
-                if c_class_counts[this_type] <= 0:
-                    continue
-                break
+            # Get available types (count > 0), fallback to all types if exhausted
+            available_types = [t for t, count in c_class_counts.items() if count > 0]
+            if available_types:
+                this_type = r.choice(available_types)
+            else:
+                this_type = r.choice(c_classes)
             customer = generate_customer(this_type, state=this_state)
             inst.state['customers'].append(customer)
             cdist[this_state] -= 1

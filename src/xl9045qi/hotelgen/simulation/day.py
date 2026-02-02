@@ -100,29 +100,37 @@ def process_day(inst: HGSimulationState):
         return
     # Step 1. Scan for any hotels that have checkouts today.
     # If found, introduce a financial transaction recording the checkout.
-
-    # hotel_state contains hotel ID as keys; each value has room type as key, booking as value
+    # Use filtering instead of individual .remove() calls (O(n) vs O(n²))
 
     for hotel_id in inst.state['occupied_rooms'].keys():
-        hotel = inst.state['cache']['hotels_by_id'][hotel_id]
-        for rt in inst.state['occupied_rooms'][hotel_id]:
-            for booking in inst.state['occupied_rooms'][hotel_id][rt]:
-                if get_datetime_by_day_num(inst, booking[1]) <= inst.state['current_day']:
-                    # Checkout today
-                    # Record transaction                        
-                    inst.checkout(hotel_id, booking)
-                    checkout_count += 1
+        for rt in list(inst.state['occupied_rooms'][hotel_id].keys()):
+            old_bookings = inst.state['occupied_rooms'][hotel_id][rt]
+            # Separate into checkouts and remaining
+            to_checkout = [
+                b for b in old_bookings
+                if get_datetime_by_day_num(inst, b[1]) <= inst.state['current_day']
+            ]
+            inst.state['occupied_rooms'][hotel_id][rt] = [
+                b for b in old_bookings
+                if get_datetime_by_day_num(inst, b[1]) > inst.state['current_day']
+            ]
+            # Process checkouts (room already removed from list)
+            for booking in to_checkout:
+                inst.checkout_finalize(hotel_id, booking)
+                checkout_count += 1
 
     # Step 2: Determine if any customers are now available and should be removed
     # from occupied customers.
 
     # Occupied customers contains customer type as keys; each value is a list of tuples of (customer_id, hotel_id, available_date)
+    # Use list comprehension instead of individual .remove() calls (O(n) vs O(n²))
     for cust_type in inst.state['occupied_customers'].keys():
-        for occ_cust in inst.state['occupied_customers'][cust_type][:]:
-            if occ_cust[2] <= inst.state['current_day']:
-                # This customer is now available
-                inst.state['occupied_customers'][cust_type].remove(occ_cust)
-                reactivate_count += 1
+        old_list = inst.state['occupied_customers'][cust_type]
+        inst.state['occupied_customers'][cust_type] = [
+            occ_cust for occ_cust in old_list
+            if occ_cust[2] > inst.state['current_day']
+        ]
+        reactivate_count += len(old_list) - len(inst.state['occupied_customers'][cust_type])
 
     # Step 3: Determine today's occupancy percentage.
     today_occupancy = lsv(day, 0, 45, -0.4) / 45.0
@@ -138,20 +146,19 @@ def process_day(inst: HGSimulationState):
     if total_customers_needed <= 0:
         return
 
+    # Build set of all checked-in customer IDs ONCE (O(1) lookup instead of O(n))
+    all_checked_in_ids = set(
+        booking[0]  # customer_id
+        for hid in inst.state['occupied_rooms'].keys()
+        for rt in inst.state['occupied_rooms'][hid].keys()
+        for booking in inst.state['occupied_rooms'][hid][rt]
+    )
+
     # For each group of customers, first extract out all IDs of all customers
     for ct in customer_counts.keys():
         all_customers_in_grp = inst.state['cache']['customers_by_archetype'][ct]
-        # Now we need to get the list of all IDs checked into all hotels
-        all_checked_in_ids = [
-            inst.state['occupied_rooms'][hid][rt]
-            for hid in inst.state['occupied_rooms'].keys()
-            for rt in inst.state['occupied_rooms'][hid].keys()
-        ]
-        # flatten list of lists
-        all_checked_in_ids = [item for sublist in all_checked_in_ids for item in sublist]
-        all_checked_in_ids = [x[0] for x in all_checked_in_ids]  # Extract only IDs
 
-        # Remove all checked in ids from the all_customers_in_grp list, if they exist
+        # Remove all checked in ids from the all_customers_in_grp list (O(1) per lookup)
         all_customers_in_grp = [
             cid
             for cid in all_customers_in_grp
@@ -159,10 +166,11 @@ def process_day(inst: HGSimulationState):
         ]
 
         # We also need to remove any customer who appears in the occupied customers list.
-        occupied_customer_ids = [
+        # Use set for O(1) lookup
+        occupied_customer_ids = set(
             cust[0]
             for cust in inst.state['occupied_customers'].get(ct, [])
-        ]
+        )
         all_customers_in_grp = [
             cid
             for cid in all_customers_in_grp

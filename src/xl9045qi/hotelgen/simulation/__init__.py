@@ -91,7 +91,7 @@ class HGSimulationState:
         if self.state['current_day'] < get_datetime_by_day_num(self, booking[1]) and not force:
             print(f"[bold red]WARNING: Attempting to checkout customer {booking[0]} before their scheduled checkout date of {booking[1]}. Use force=True to override.")
             return
-        
+
         skipped_days = 0
         if self.state['current_day'] < \
             datetime.datetime.strptime(self.job['generation']['dates']['start'], "%Y-%m-%d") + \
@@ -102,6 +102,20 @@ class HGSimulationState:
         # Find the tuple in the self.state['occupied_rooms'] array and remove it
         self.state['occupied_rooms'][hotel_id][booking[3]].remove(booking)
 
+        self._checkout_record(hotel_id, booking, skipped_days)
+
+    def checkout_finalize(self, hotel_id: int, booking: tuple):
+        """Finalize checkout when room already removed from occupied_rooms (batch processing)"""
+        skipped_days = 0
+        if self.state['current_day'] < \
+            datetime.datetime.strptime(self.job['generation']['dates']['start'], "%Y-%m-%d") + \
+            datetime.timedelta(days=booking[2]):
+            skipped_days = booking[1] - self.state['current_day_num']
+
+        self._checkout_record(hotel_id, booking, skipped_days)
+
+    def _checkout_record(self, hotel_id: int, booking: tuple, skipped_days: int):
+        """Record checkout event and transaction (shared by checkout methods)"""
         # Add checkout event
         checkout_event = {
             'event': 'checkout',
@@ -110,6 +124,6 @@ class HGSimulationState:
             'room_type': booking[3]
         }
         self.state['events'].append(checkout_event)
-        
+
         trans = generate_transaction(self, hotel_id, booking[0], booking[2] - skipped_days, booking[3])
         self.state['transactions'].append(trans)
