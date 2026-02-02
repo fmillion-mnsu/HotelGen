@@ -3,7 +3,6 @@
 import argparse
 import os.path
 
-import mssql_python as mssql
 import tqdm
 from yaml import safe_load
 
@@ -22,11 +21,17 @@ def main():
     parser.add_argument("--drop",action="store_true",help="Drop existing tables before creating new ones")
     parser.add_argument("-o","--output",type=str,default="hotelgen_output.pkl",help="Path to output pickle file")
     parser.add_argument("-i","--input",type=str,help="Path to input pickle file to resume from")
-
+    parser.add_argument("--no-database",type=bool,action="store_true",help="Do not load data into the database; instead, only produce the output .pkl file")
     args = parser.parse_args()
 
     print("Reading job: " + args.JOBFILE)
     job = safe_load(open(args.JOBFILE,"r"))["job"]
+
+    if args.input is not None:
+        input_path = os.path.abspath(args.input)
+        print("Resuming from input file: " + input_path)
+        generator = sim.HGSimulationState(job)
+        generator.import_pkl(input_path)
 
     print("Initializing generator...")
     generator = sim.HGSimulationState(job)
@@ -46,48 +51,15 @@ def main():
     output_path = os.path.abspath(args.output)
     print("Writing output to " + args.output)
     generator.export(output_path)
-    exit(0)
-
-    # Try to connect first
-    print("Connecting to the database...",end="",flush=True)
-
-    try:
-        conn = mssql.connect(
-            server=job["database"]["host"],   
-            uid=job["database"]["username"],
-            pwd=job["database"]["password"],
-            database=job["database"]["dbname"],
-            encrypt="yes",
-            trust_server_certificate="yes"
-        )
-    except Exception as e:
-        print("failed.")
-        print("ERROR: Could not connect to the database.")
-        print("       " + str(e))
-        print()
-        return
     
-    print("OK.")
+    if args.no_database:
+        print("Skipping database load.")
+        print(f"Output has been written to {output_path}.")
+        print("You can import this into your database by executing:\n")
+        print(f"  hotelgen -i {output_path}\n")
+        exit(0)
 
-    # Determine if there are any objects in the database beyond system objects (i.e. any tables)
-    cursor = conn.cursor()
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM sys.objects
-        WHERE type IN ('U')
-    """)
-    row = cursor.fetchone()
-    if row is None:
-        existing_tables = 0
-    else:
-        existing_tables = row[0]
-
-    if existing_tables > 0:
-        print()
-        print("WARNING: The database already contains existing tables.")
-        print("         Use the --drop option to drop existing tables before creating new ones.")
-        print()
-        return
+    exit(0)
     
 if __name__ == "__main__":
     main()
