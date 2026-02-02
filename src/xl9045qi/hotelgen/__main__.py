@@ -1,10 +1,11 @@
 # Generate the database for a hotel chain in a live MSSQL database
 
 import argparse
-from xl9045qi.hotelgen.generator import HotelGen
 
 import mssql_python as mssql
 from yaml import safe_load
+
+import xl9045qi.hotelgen.simulation as sim
 
 def main():
 
@@ -24,13 +25,19 @@ def main():
     job = safe_load(open(args.JOBFILE,"r"))["job"]
 
     print("Initializing generator...")
-    generator = HotelGen(job)
+    generator = sim.HGSimulationState(job)
 
-    # Start the generation process
-    generator.start()
+    sim.phase0(generator)
+    generator.export("00.pkl")
 
-    import pickle
-    generator.export("FINAL.pkl")
+    sim.phase1(generator)
+    generator.export("01.pkl")
+
+    sim.phase2(generator)
+    generator.export("02.pkl")
+
+    sim.phase3(generator)
+    generator.export("03.pkl")
     exit(0)
 
     # Try to connect first

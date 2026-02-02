@@ -826,3 +826,73 @@ customer_email_domains:
   - "cox.net"
   - "sbcglobal.net"
   - "bellsouth.net"
+
+misc:
+  hotel_name_templates:
+    - '{adj} {noun} {type}'
+    - '{adj} {noun} {type}'
+    - '{adj} {noun} {type}'
+    - '{adj} {noun} {type}'
+    - '{adj} {noun} {type}'
+    - '{adj} {noun} {type}'
+    - '{adj} {noun} {type}'
+    - '{adj} {noun} {type}'
+    - 'The {adj} {noun}'
+    - 'The {adj} {noun}'
+    - 'The {adj} {noun}'
+    - 'The {adj} {noun} {type}'
+    - 'The {noun} at {loc}'
+    - 'The {adj} {noun} at {loc}'
+    - 'The {type} {noun} at {loc}'
+    - '{noun} {type} of {loc}'
+    - 'The {type} {adj} {noun}'
+  customer_email_templates:
+    - '{fname}.{lname}@{domain}'
+    - '{fname}{lname}@{domain}'
+    - '{f_initial}{lname}@{domain}'
+    - '{fname}{l_initial}@{domain}'
+    - '{lname}{fname}@{domain}'
+  hotel_domain_templates:
+    - '{adj}{noun}{type}'
+    - '{adj}{noun}'
+    - '{noun}{type}'
+    - '{noun}at{loc}'
+  hotel_domain_tlds:
+    - .com
+    - .com
+    - .com
+    - .com
+    - .com
+    - .net
+    - .net
+    - .hotel
+    - .travel
+    - .vacations
+  credit_card_names:
+    - Visa
+    - American Express
+    - MasterCard
+    - Discover
+    - Diners Club
+  email_users:
+    - info
+    - contact
+    - reservations
+    - booking
+    - stay
+    - help
+    - guestservices
+    - reserve
+    - book
+    - support
+    - frontdesk
+    - service
+    - customerservice
+    - events
+    - office
+  url_stems:
+    - home
+    - ?lang=en_US
+    - index.html
+    - welcome
+    - book
