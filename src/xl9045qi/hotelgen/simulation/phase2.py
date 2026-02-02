@@ -23,7 +23,14 @@ def phase2(inst: HGSimulationState):
         return
 
     from xl9045qi.hotelgen.generators.distribution import generate_state_distribution
-    from xl9045qi.hotelgen.generators.customer import generate_customer
+    from xl9045qi.hotelgen.generators.customer import generate_customer, init_customer_cache
+
+    # Initialize cache if not already present
+    if 'cache' not in inst.state:
+        inst.state['cache'] = {}
+
+    # Initialize customer generation caches (zipcode lists, email templates)
+    init_customer_cache(inst)
 
     # Phase 2: Figure out how many customers to generate
     customer_count_mean = inst.job['generation']['customers']['count']
@@ -63,7 +70,7 @@ def phase2(inst: HGSimulationState):
                 this_type = r.choice(available_types)
             else:
                 this_type = r.choice(c_classes)
-            customer = generate_customer(this_type, state=this_state)
+            customer = generate_customer(inst, this_type, state=this_state)
             inst.state['customers'].append(customer)
             cdist[this_state] -= 1
             c_class_counts[this_type] -= 1

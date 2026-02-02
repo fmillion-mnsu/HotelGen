@@ -4,6 +4,36 @@ from faker import Faker
 r = random.Random()
 f = Faker()
 
+# Pre-generate name pools to avoid slow Faker calls during bulk generation
+# 10K of each gives good variety with minimal memory (~1MB total)
+_POOL_SIZE = 10000
+_first_names = None
+_last_names = None
+_street_names = None
+
+def _init_name_pools():
+    """Lazily initialize name pools on first use."""
+    global _first_names, _last_names, _street_names
+    if _first_names is None:
+        _first_names = [f.first_name() for _ in range(_POOL_SIZE)]
+        _last_names = [f.last_name() for _ in range(_POOL_SIZE)]
+        _street_names = [f.street_name() for _ in range(_POOL_SIZE)]
+
+def get_first_name():
+    """Get a random first name from pre-generated pool."""
+    _init_name_pools()
+    return r.choice(_first_names)
+
+def get_last_name():
+    """Get a random last name from pre-generated pool."""
+    _init_name_pools()
+    return r.choice(_last_names)
+
+def get_street_name():
+    """Get a random street name from pre-generated pool."""
+    _init_name_pools()
+    return r.choice(_street_names)
+
 def generate_us_phone():
     """Generate a standard, valid US phone number in the format NXX-NXX-XXXX"""
     # Valid US area codes don't start with 0 or 1

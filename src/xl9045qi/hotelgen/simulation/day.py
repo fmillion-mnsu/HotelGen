@@ -2,7 +2,7 @@ import datetime
 from xl9045qi.hotelgen import data
 from xl9045qi.hotelgen import log_scaled_value as lsv
 from xl9045qi.hotelgen import normalized_random_bounded as rand
-from xl9045qi.hotelgen.generators import r
+from xl9045qi.hotelgen.generators import generate_stay_length, r
 from rich import print
 
 from typing import TYPE_CHECKING
@@ -135,16 +135,18 @@ def process_day(inst: HGSimulationState):
 
     # Step 3: Determine today's occupancy percentage.
     ramp_up_days = inst.job['generation'].get('ramp_up_days', 45)
-    today_occupancy = lsv(day, 0, ramp_up_days, -0.4) / float(ramp_up_days) * inst.job['generation'].get('target_occupancy', 0.3)
-    # Scale the occupancy by a random factor
+    target_occupancy = inst.job['generation'].get('target_occupancy', 0.3)
+    ramp_factor = lsv(day, 0, ramp_up_days, -0.4) / float(ramp_up_days)  # 0 to 1
+    today_occupancy = ramp_factor * target_occupancy
+    # Add minor variance (SD is relative to the occupancy, e.g., 0.05 = 5% variance)
     today_occupancy = rand(
-        today_occupancy, 
-        (inst.job['generation'].get('target_occupancy_sd', 0.05) * lsv(day, 0, ramp_up_days, -0.4)), 
-        min_val=0.0, 
+        today_occupancy,
+        today_occupancy * inst.job['generation'].get('target_occupancy_sd', 0.05),
+        min_val=0.0,
         max_val=0.5
     )
 
-    print("Today's occupancy: {:.2f}%".format(today_occupancy * 100))
+    #print("Today's occupancy: {:.2f}%".format(today_occupancy * 100))
 
     # Step 4: For each hotel, determine how many rooms to fill today.
     hotel_desired_occupancy = {}
@@ -236,7 +238,7 @@ def process_day(inst: HGSimulationState):
                 inst.checkin(this_cid, hotel, rt, stay_length)
                 checkin_count += 1
 
-    print(f"Day {day} complete: {checkin_count} check-ins, {checkout_count} check-outs, {reactivate_count} reactivations.")
+    print(f"Day {day} complete: {checkin_count} c-in, {checkout_count} c-out, {reactivate_count} react, {today_occupancy * 100:.2f}% occ")
 
     return
 

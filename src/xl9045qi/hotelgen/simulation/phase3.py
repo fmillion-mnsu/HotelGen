@@ -36,9 +36,9 @@ def phase3(inst: HGSimulationState):
 
     # We also want to cache some things in memory.
     # First: A dict of key = archetype, value = list of all customer ID numbers
-    inst.state['cache'] = {
-        'customers_by_archetype': {}
-    }
+    if 'cache' not in inst.state:
+        inst.state['cache'] = {}
+    inst.state['cache']['customers_by_archetype'] = {}
     for archetype in data.customer_archetypes.keys():
         inst.state['cache']['customers_by_archetype'][archetype] = [
             customer['id']

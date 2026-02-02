@@ -1,9 +1,25 @@
 # Generates individual customer records
 
 from xl9045qi.hotelgen import data
-from xl9045qi.hotelgen.generators import f, r, generate_street_number, generate_us_phone
+from xl9045qi.hotelgen.generators import r, generate_street_number, generate_us_phone
+from xl9045qi.hotelgen.generators import get_first_name, get_last_name, get_street_name
 
-def generate_customer(customer_type: str, state: str = "MN") -> dict:
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from xl9045qi.hotelgen.simulation import HGSimulationState
+
+
+def init_customer_cache(inst: 'HGSimulationState'):
+    """Initialize customer generation caches in inst.state['cache']."""
+    inst.state['cache']['zipcode_lists_by_state'] = {
+        state: list(zips.keys())
+        for state, zips in data.zipcodes.items()
+    }
+    inst.state['cache']['email_templates'] = list(data.misc['customer_email_templates'])
+    inst.state['cache']['email_domains'] = data.customer_email_domains
+
+
+def generate_customer(inst: 'HGSimulationState', customer_type: str, state: str = "MN") -> dict:
     """Generate a single random customer.
 
     Args:
@@ -22,38 +38,40 @@ def generate_customer(customer_type: str, state: str = "MN") -> dict:
 
     ### --- CUSTOMER NAME, LOCATION, CONTACT INFO --- ###
 
-    # Determine how we should select city/state/zip
+    # Get cached lists from inst.state['cache']
+    cache = inst.state['cache']
+
+    # Determine how we should select city/state/zip (use cached list)
     if state:
-        # If state was given, use that
         try:
-            zc = r.choice(list(data.zipcodes[state].keys()))
+            zc = r.choice(cache['zipcode_lists_by_state'][state])
             csz = (data.zipcodes[state][zc], state.upper(), zc)
         except KeyError:
             raise ValueError(f"Invalid state code: {state}")
     else:
-        # Totally random zipcode
-        zc = r.choice(list(data.zipcodes[state].keys()))
+        zc = r.choice(cache['zipcode_lists_by_state'][state])
         csz = (data.zipcodes[state][zc], state.upper(), zc)
 
-    fname = f.first_name()
-    lname = f.last_name()
+    # Use pre-generated name pools instead of slow Faker calls
+    fname = get_first_name()
+    lname = get_last_name()
     email_parts = {
         "fname": fname,
         "lname": lname,
         "f_initial": fname[0],
         "l_initial": lname[0],
         "year": str(r.randrange(70, 2030)).zfill(2),
-        "domain": r.choice(data.customer_email_domains)
+        "domain": r.choice(cache['email_domains'])
     }
     # Email is one of the random Email addresses at the generated domain
-    email_fmt = r.choice(list(data.misc['customer_email_templates']))
+    email_fmt = r.choice(cache['email_templates'])
     email = email_fmt.format(**email_parts).lower()
 
     # Final response assembly
     response = {
         "fname": fname,
         "lname": lname,
-        "street": f"{generate_street_number()} {f.street_name()}",
+        "street": f"{generate_street_number()} {get_street_name()}",
         "city": csz[0],
         "state": csz[1],
         "zip": csz[2],
