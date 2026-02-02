@@ -8,7 +8,7 @@ This program is being developed in phases:
     - [x] Individual hotels, including name, fake location, types and number of rooms, amenities
     - [x] Based on generic modeling data and a "mean + SD" randomizer approach
     - [x] Customer records
-    - [ ] Guest stay records
+    - [x] Guest stay records
     - [ ] Employee records per hotel (with basic payroll)
     - [ ] Basic financials
       - [x] Room rates
