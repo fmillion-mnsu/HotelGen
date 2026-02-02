@@ -82,6 +82,10 @@ def process_day(inst: HGSimulationState):
         state.
     """
 
+    if inst.state.get("last_phase", -1) < 3:
+        print("[bold red]ERROR: Cannot process day before completing Phase 3.")
+        return
+
     # Set the initial day number, or advance it
     if 'current_day_num' not in inst.state:
         inst.state['current_day_num'] = 1
@@ -96,11 +100,6 @@ def process_day(inst: HGSimulationState):
     checkout_count = 0
     reactivate_count = 0
 
-    from xl9045qi.hotelgen.generators.transaction import generate_transaction
-
-    if inst.state.get("last_phase", -1) < 3:
-        print("[bold red]ERROR: Cannot process day before completing Phase 3.")
-        return
     # Step 1. Scan for any hotels that have checkouts today.
     # If found, introduce a financial transaction recording the checkout.
     # Use filtering instead of individual .remove() calls (O(n) vs O(n²))

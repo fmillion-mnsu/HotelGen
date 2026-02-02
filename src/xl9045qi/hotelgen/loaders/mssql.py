@@ -52,7 +52,7 @@ SCHEMA = {
         "phone": "VARCHAR(20) NOT NULL",
     },
     "room_type": {
-        "id": "INT PRIMARY KEY IDENTITY(1,1)",
+        "id": "INT PRIMARY KEY",
         "code": "VARCHAR(10) NOT NULL",
         "description": "NVARCHAR(192) NOT NULL",
     },
@@ -112,14 +112,44 @@ SCHEMA = {
 class DatabaseLoader():
     
     def drop_all_tables(self):
+        """Drop all user tables, handling foreign key constraints properly."""
         cursor = self._conn.cursor()
+
+        # First, get all foreign key constraints
+        # Use OBJECT_SCHEMA_NAME for the parent table's schema (not SCHEMA_NAME which expects a schema_id)
         cursor.execute("""
-            DECLARE @sql NVARCHAR(MAX) = N'';
-            SELECT @sql += N'DROP TABLE ' + QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name) + ';' + CHAR(13)
-            FROM sys.tables;
-            EXEC sp_executesql @sql;
+            SELECT
+                QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id)) + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) AS table_name,
+                QUOTENAME(name) AS constraint_name
+            FROM sys.foreign_keys
         """)
-        self._conn.commit()
+        fk_rows = cursor.fetchall()
+
+        # Drop each FK constraint individually
+        for row in fk_rows:
+            table_name = row[0]
+            constraint_name = row[1]
+            try:
+                cursor.execute(f"ALTER TABLE {table_name} DROP CONSTRAINT {constraint_name}")
+                self._conn.commit()
+            except Exception as e:
+                print(f"Warning: Could not drop constraint {constraint_name}: {e}")
+
+        # Now get all user tables
+        cursor.execute("""
+            SELECT QUOTENAME(SCHEMA_NAME(schema_id)) + '.' + QUOTENAME(name) AS table_name
+            FROM sys.tables
+        """)
+        table_rows = cursor.fetchall()
+
+        # Drop each table individually
+        for row in table_rows:
+            table_name = row[0]
+            try:
+                cursor.execute(f"DROP TABLE {table_name}")
+                self._conn.commit()
+            except Exception as e:
+                print(f"Warning: Could not drop table {table_name}: {e}")
     
     def connect(self) -> bool:
         # Try to connect first
@@ -182,13 +212,21 @@ class DatabaseLoader():
                     column_defs.append(f"{col} {defn}")
             column_defs_str = ",\n    ".join(column_defs)
             create_sql = f"CREATE TABLE {table} (\n    {column_defs_str}\n);"
-            print(f"Creating table {table}...",end="",flush=True)
+            print(f"  - Creating table {table}...",end="",flush=True)
             cursor = self._conn.cursor()
             cursor.execute(create_sql)
             self._conn.commit()
             print("OK.")
 
-    def load_data(self, data: dict):
+    def set_identity_insert(self, table: str, enable: bool):
+        """Enable or disable IDENTITY_INSERT for the specified table."""
+        cursor = self._conn.cursor()
+        if enable:
+            cursor.execute(f"SET IDENTITY_INSERT {table} ON;")
+        else:
+            cursor.execute(f"SET IDENTITY_INSERT {table} OFF;")
+        cursor.connection.commit()
+    def load_data(self, state: dict):
         """Load the data into the database. The `data` dict should be the 'state' item from a HGSimulationState  object."""
         # Ok, let's do this.
 
@@ -201,11 +239,12 @@ class DatabaseLoader():
 
         # First, we load the hotels.
         hotel: Hotel
-        for hotel in tqdm.tqdm(data['hotels'], desc="Loading properties"):
-            print(f"Inserting hotel {hotel.id}...",end="",flush=True)
+        self.set_identity_insert("property", True)
+        self.set_identity_insert("property_rooms", True)
+        for hotel in tqdm.tqdm(state['hotels'], desc="Loading properties"):
             cursor.execute("""
                 INSERT INTO property (id, name, street_address, city, state, zip, email, website, phone)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
             """, (
                 hotel.id,
                 hotel.name,
@@ -217,40 +256,42 @@ class DatabaseLoader():
                 hotel.website,
                 hotel.phone
             ))
-            property_id = cursor.lastrowid
 
             for rt, room_info in hotel.rooms.items():
-                # First, ensure the room type exists
+                # First, ensure the room type exists (lookup by code, not description)
                 cursor.execute("""
-                    SELECT id FROM room_type WHERE description = ?;
+                    SELECT id FROM room_type WHERE code = ?;
                 """, (rt,))
                 row = cursor.fetchone()
                 if row is None:
-                    # Insert it
+                    # Insert it with both code and description
+                    rt_name = data.room_types.get(rt, {}).get('name', rt)
                     cursor.execute("""
-                        INSERT INTO room_type (description) VALUES (?);
-                    """, (rt,))
+                        INSERT INTO room_type (code, description) VALUES (?, ?);
+                    """, (rt, rt_name))
                     room_type_id = cursor.lastrowid
                 else:
                     room_type_id = row[0]
-                
-                # Now insert the property_rooms record
+
+                # Now insert the property_rooms record (use hotel.id, not lastrowid)
                 cursor.execute("""
                     INSERT INTO property_rooms (property_id, room_type_id, count, price, resort_fee)
                     VALUES (?, ?, ?, ?, ?);
                 """, (
-                    property_id,
+                    hotel.id,
                     room_type_id,
                     room_info.count,
                     room_info.price,
                     hotel.resort_fee
                 ))
         cursor.connection.commit()
-            
+        self.set_identity_insert("property", False)
+        self.set_identity_insert("property_rooms", False)
+
         # Now, load customers
+        self.set_identity_insert("customer", True)        
         cust: Customer
-        for cust in tqdm.tqdm(data['customers'], desc="Loading customers"):
-            print(f"Inserting customer {cust.id}...",end="",flush=True)
+        for cust in tqdm.tqdm(state['customers'], desc="Loading customers"):
             cursor.execute("""
                 INSERT INTO customer (id, first_name, last_name, email, phone, address, city, state, zip)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
@@ -266,9 +307,11 @@ class DatabaseLoader():
                 cust.zip
             ))
         cursor.connection.commit()
-        
+        self.set_identity_insert("customer", False)
+
         # Lets now load the events (events are still dicts, not dataclasses)
-        for event in tqdm.tqdm(data['events'], desc="Loading events"):
+        self.set_identity_insert("event", True)
+        for event in tqdm.tqdm(state['events'], desc="Loading events"):
             if event['event'] == 'checkin':
                 event_code = 'checkin'
                 event_date = event['checkin_date']
@@ -284,10 +327,13 @@ class DatabaseLoader():
                 event['property_id'],
                 event_date
             ))
+        cursor.connection.commit()
+        self.set_identity_insert("event", False)
 
         # And finally the transactions
+        self.set_identity_insert("transact", True)
         transaction: Transaction
-        for transaction in tqdm.tqdm(data['transactions'], desc="Loading transactions"):
+        for transaction in tqdm.tqdm(state['transactions'], desc="Loading transactions"):
             # Parse payment method (e.g., "Visa xxxx-1234" -> method="Visa", stub="xxxx-1234")
             payment_parts = transaction.payment.method.split(' ', 1)
             payment_method = payment_parts[0]
@@ -317,6 +363,7 @@ class DatabaseLoader():
                     line.quantity
                 ))
         cursor.connection.commit()
-    
+        self.set_identity_insert("transact", False)
+
         print("Data load completed!")
     
