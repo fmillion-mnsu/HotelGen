@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import os.path
@@ -270,14 +271,77 @@ class HotelGen():
         This involves precomputing certain data structures to make simulation runs faster.
         """
         
-        self.state['rooms'] = {}
-        # Populate room matrix per hotel
-        for hotel in self.hotels:
-            room_matrix = {}
-            for room_type, count in hotel['rooms'].items():
-                room_matrix[room_type] = [None] * count
-            self.state['rooms'][hotel['id']] = room_matrix
+        # First, we need a simple dict consisting of key = id, value = dict with key = room type, value = empty list.
+        self.state['occupied_rooms'] = {
+            hotel['id']: {room_type: [] for room_type in hotel['rooms'].keys()}
+            for hotel in self.hotels
+        }
+
+        # We also need a list to manage currently occupied *Customers*
+        # The values in these lists will be tuples of (id, available_date).
+        self.state['occupied_customers'] = {
+            x: []
+            for x in PARAMS['customer_archetypes'].keys()
+        }
+
+        # We also want to cache some things in memory.
+        # First: A dict of key = archetype, value = list of all customer ID numbers
+        self.state['cache'] = {
+            'customers_by_archetype': {}
+        }
+        for archetype in PARAMS['customer_archetypes'].keys():
+            self.state['cache']['customers_by_archetype'][archetype] = [
+                customer['id']
+                for customer in self.customers
+                if customer['type'] == archetype
+            ]
         
+        self.state['current_day'] = datetime.datetime.strptime(self.job['generation']['dates']['start'], "%Y-%m-%d")
+        end_day = datetime.datetime.strptime(self.job['generation']['dates']['end'], "%Y-%m-%d")
+        self.state['days_left'] = (end_day - self.state['current_day']).days + 1 
+
+        print(f"Preparation ready. Will generate {self.state['days_left']} days of simulated transactions.")
+
+def get_stay_length(stay_weights: dict) -> int:
+    """Generates a number of days for a hotel stay, based on the random factors for a customer archetype.
+    
+    Args:
+        stay_weights (dict): A dictionary containing weightsfor stay length.
+    
+    Returns:
+        int: The generated number of days for the stay.
+    
+    Remarks:
+        The weights dict consists of keys that are strings representing either a
+        single integer (e.g. '5') or a range of values, max-exclusive (same as range()
+        behavior), with a hyphen between them (e.g. '5-8' means 5, 6 or 7 nights). The
+        values for the keys are floating point probabilities betweeen 0 and 1."""
+
+    # First, we add up all the *values* in the dict to get a total for the weights.
+    # The total may not be 1, so if not we scale all values so that they total 1.
+    total_weight = sum(stay_weights.values())
+    if total_weight != 1.0:
+        stay_weights = {k: v / total_weight for k, v in stay_weights.items()}
+    
+    # Next, generate a random float between 0 and 1.
+    rand_val = r.random()
+
+    # Now, we iterate through the weights, summing them up until we exceed rand_val.
+    cumulative_weight = 0.0
+    for k, v in stay_weights.items():
+        cumulative_weight += v
+        if rand_val <= cumulative_weight:
+            # We found our key!
+            if '-' in k:
+                # It's a range
+                parts = k.split('-')
+                start = int(parts[0])
+                end = int(parts[1])
+                return r.randrange(start, end)
+            else:
+                # It's a single value
+                return int(k)
+
 def generate_state_distribution(count: int, sd: float = 0.0, reassignments: int = 0) -> dict:
     """Generate a distribution of how many entities to generate in each state based on a
     total desired number of entities. This is used both for hotel and customer generation.

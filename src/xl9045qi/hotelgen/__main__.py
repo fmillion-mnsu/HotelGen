@@ -30,7 +30,7 @@ def main():
     generator.start()
 
     import pickle
-    open("FINAL.pkl","wb").write(pickle.dumps(generator.state))
+    generator.export("FINAL.pkl")
     exit(0)
 
     # Try to connect first
