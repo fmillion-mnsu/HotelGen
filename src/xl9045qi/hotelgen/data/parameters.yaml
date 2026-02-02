@@ -164,168 +164,320 @@ state_population_ratios: # based on 2023 Population numbers
   VT: 0.017  # 0.6M
   WY: 0.015  # 0.6M
 
-state_price_multipliers:
-
-    # Premium markets (>1.0)
-    HI:             # Hawaii - tourism premium
+state_data:
+  # Premium markets (>1.0)
+  HI:             # Hawaii - tourism premium
+    price_multiplier:
       mean: 1.45
       sd: 0.10
-    NY:             # New York - urban premium
+    sales_tax: 0.04
+    luxury_tax: 0.1425
+  NY:             # New York - urban premium
+    price_multiplier:
       mean: 1.25
       sd: 0.12
-    MA:             # MAssachusetts - Boston market
+    sales_tax: 0.04
+    luxury_tax: 0.125
+  MA:             # Massachusetts - Boston market
+    price_multiplier:
       mean: 1.15
       sd: 0.08
-    DC:             # DC - government/tourism
+    sales_tax: 0
+    luxury_tax: 0.117
+  DC:             # DC - government/tourism
+    price_multiplier:
       mean: 1.10
       sd: 0.08
-    NJ:             # New Jersey - NYC spillover
+    sales_tax: 0
+    luxury_tax: 0.1495
+  NJ:             # New Jersey - NYC spillover
+    price_multiplier:
       mean: 1.05
       sd: 0.08
-    CT:             # Connecticut
+    sales_tax: 0
+    luxury_tax: 0.14
+  CT:             # Connecticut
+    price_multiplier:
       mean: 1.05
       sd: 0.07
-    WA:             # Washington - Seattle market
+    sales_tax: 0
+    luxury_tax: 0.15
+  WA:             # Washington - Seattle market
+    price_multiplier:
       mean: 1.00
       sd: 0.08
-    CO:             # Colorado - ski/tourism
+    sales_tax: 0.065
+    luxury_tax: 0.125
+  CO:             # Colorado - ski/tourism
+    price_multiplier:
       mean: 1.00
       sd: 0.10
-    FL:             # Florida - high volume, variable
+    sales_tax: 0.029
+    luxury_tax: 0.125
+  FL:             # Florida - high volume, variable
+    price_multiplier:
       mean: 0.95
       sd: 0.12
-    AZ:             # Arizona - Scottsdale vs rural
+    sales_tax: 0.06
+    luxury_tax: 0.12
+  AZ:             # Arizona - Scottsdale vs rural
+    price_multiplier:
       mean: 0.95
       sd: 0.10
-    NV:             # Nevada - Vegas skews this (handled by tourism multiplier)
+    sales_tax: 0.065
+    luxury_tax: 0.115
+  NV:             # Nevada - Vegas skews this (handled by tourism multiplier)
+    price_multiplier:
       mean: 0.90
       sd: 0.15
-    IL:             # Illinois - Chicago market
+    sales_tax: 0.0685
+    luxury_tax: 0.135
+  IL:             # Illinois - Chicago market
+    price_multiplier:
       mean: 0.90
       sd: 0.08
-    CA:             # California - baseline
+    sales_tax: 0.0625
+    luxury_tax: 0.13
+  CA:             # California - baseline
+    price_multiplier:
       mean: 1.00
       sd: 0.10
+    sales_tax: 0.0725
+    luxury_tax: 0.12
 
-    # Mid-range markets (0.75-0.90)
-    OR:
+  # Mid-range markets (0.75-0.90)
+  OR:
+    price_multiplier:
       mean: 0.88
       sd: 0.07
-    MD:
+    sales_tax: 0
+    luxury_tax: 0.105
+  MD:
+    price_multiplier:
       mean: 0.88
       sd: 0.08
-    VA:
+    sales_tax: 0
+    luxury_tax: 0.12
+  VA:
+    price_multiplier:
       mean: 0.85
       sd: 0.08
-    PA:
+    sales_tax: 0.053
+    luxury_tax: 0.105
+  PA:
+    price_multiplier:
       mean: 0.85
       sd: 0.08
-    MN:
+    sales_tax: 0.06
+    luxury_tax: 0.11
+  MN:
+    price_multiplier:
       mean: 0.82
       sd: 0.06
-    UT:
+    sales_tax: 0.06875
+    luxury_tax: 0.105
+  UT:
+    price_multiplier:
       mean: 0.82
       sd: 0.08
-    NC:
+    sales_tax: 0.0485
+    luxury_tax: 0.115
+  NC:
+    price_multiplier:
       mean: 0.80
       sd: 0.07
-    GA:             # Atlanta market
+    sales_tax: 0.0475
+    luxury_tax: 0.11
+  GA:             # Atlanta market
+    price_multiplier:
       mean: 0.80
       sd: 0.08  
-    MI:
+    sales_tax: 0.04
+    luxury_tax: 0.11
+  MI:
+    price_multiplier:
       mean: 0.78
       sd: 0.06
-    WI:
+    sales_tax: 0
+    luxury_tax: 0.12
+  WI:
+    price_multiplier:
       mean: 0.78
       sd: 0.06
-    SC:             # Charleston/Myrtle Beach
+    sales_tax: 0.05
+    luxury_tax: 0.115
+  SC:             # Charleston/Myrtle Beach
+    price_multiplier:
       mean: 0.78
       sd: 0.08  
-    TN:             # Nashville tourism
+    sales_tax: 0.06
+    luxury_tax: 0.105
+  TN:             # Nashville tourism
+    price_multiplier:
       mean: 0.78
       sd: 0.08  
-    NH:
+    sales_tax: 0.07
+    luxury_tax: 0.125
+  NH:
+    price_multiplier:
       mean: 0.78
       sd: 0.06
-    VT:             # Ski areas
+    sales_tax: 0
+    luxury_tax: 0.09
+  VT:             # Ski areas
+    price_multiplier:
       mean: 0.78
       sd: 0.07  
-    ME:
+    sales_tax: 0.06
+    luxury_tax: 0.10
+  ME:
+    price_multiplier:
       mean: 0.75
       sd: 0.06
-    RI:
+    sales_tax: 0
+    luxury_tax: 0.09
+  RI:
+    price_multiplier:
       mean: 0.75
       sd: 0.06
-    DE:
+    sales_tax: 0
+    luxury_tax: 0.13
+  DE:
+    price_multiplier:
       mean: 0.75
       sd: 0.05
+    sales_tax: 0
+    luxury_tax: 0.08
 
-    # Value markets (0.60-0.75)
-    LA:             # New Orleans vs rural
+  # Value markets (0.60-0.75)
+  LA:             # New Orleans vs rural
+    price_multiplier:
       mean: 0.75
       sd: 0.10
-    MO:             # Branson/KC/STL
+    sales_tax: 0.0445
+    luxury_tax: 0.135
+  MO:             # Branson/KC/STL
+    price_multiplier:
       mean: 0.72
       sd: 0.08
-    OH:
+    sales_tax: 0.04225
+    luxury_tax: 0.125
+  OH:
+    price_multiplier:
       mean: 0.72
       sd: 0.06
-    IN:
+    sales_tax: 0.0575
+    luxury_tax: 0.135
+  IN:
+    price_multiplier:
       mean: 0.70
       sd: 0.05
-    KY:
+    sales_tax: 0
+    luxury_tax: 0.12
+  KY:
+    price_multiplier:
       mean: 0.70
       sd: 0.06
-    NM:
+    sales_tax: 0
+    luxury_tax: 0.115
+  NM:
+    price_multiplier:
       mean: 0.70
       sd: 0.07
-    TX:             # Huge variation (Austin vs rural)
+    sales_tax: 0.04875
+    luxury_tax: 0.105
+  TX:             # Huge variation (Austin vs rural)
+    price_multiplier:
       mean: 0.70
       sd: 0.10
-    ID:
+    sales_tax: 0.0625
+    luxury_tax: 0.15
+  ID:
+    price_multiplier:
       mean: 0.70
       sd: 0.07
-    MT:             # Tourist areas vary
+    sales_tax: 0.06
+    luxury_tax: 0.10
+  MT:             # Tourist areas vary
+    price_multiplier:
       mean: 0.70
       sd: 0.08
-    IA:
+    sales_tax: 0
+    luxury_tax: 0.08
+  IA:
+    price_multiplier:
       mean: 0.68
       sd: 0.05
-    KS:
+    sales_tax: 0.06
+    luxury_tax: 0.12
+  KS:
+    price_multiplier:
       mean: 0.65
       sd: 0.05
-    NE:
+    sales_tax: 0.065
+    luxury_tax: 0.13
+  NE:
+    price_multiplier:
       mean: 0.65
       sd: 0.05
-    AL:
+    sales_tax: 0.055
+    luxury_tax: 0.115
+  AL:
+    price_multiplier:
       mean: 0.65
       sd: 0.06
-    AK:             # Remote premium despite low population
+    sales_tax: 0.04
+    luxury_tax: 0.115
+  AK:             # Remote premium despite low population
+    price_multiplier:
       mean: 0.85
       sd: 0.10
+    sales_tax: 0
+    luxury_tax: 0.09
 
-    # Budget markets (<0.65)
-    AR:
+  # Budget markets (<0.65)
+  AR:
+    price_multiplier:
       mean: 0.62
       sd: 0.05
-    OK:
+    sales_tax: 0.065
+    luxury_tax: 0.105
+  OK:
+    price_multiplier:
       mean: 0.62
       sd: 0.05
-    MS:
+    sales_tax: 0.045
+    luxury_tax: 0.115
+  MS:
+    price_multiplier:
       mean: 0.60
       sd: 0.05
-    WV:
+    sales_tax: 0.07
+    luxury_tax: 0.09
+  WV:
+    price_multiplier:
       mean: 0.60
       sd: 0.05
-    SD:
+    sales_tax: 0.06
+    luxury_tax: 0.10
+  SD:
+    price_multiplier:
       mean: 0.62
       sd: 0.06
-    ND:
+    sales_tax: 0.042
+    luxury_tax: 0.095
+  ND:
+    price_multiplier:
       mean: 0.62
       sd: 0.05
-    WY:
+    sales_tax: 0.05
+    luxury_tax: 0.09
+  WY:
+    price_multiplier:
       mean: 0.65
       sd: 0.06  
+    sales_tax: 0.04
+    luxury_tax: 0.09
 
 tourist_regions:
   las_vegas: 

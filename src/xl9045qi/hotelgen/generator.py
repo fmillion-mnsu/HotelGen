@@ -15,12 +15,10 @@ import tqdm
 from faker import Faker
 from yaml import safe_load
 
-from xl9045qi.hotelgen import normalized_random_bounded as rand
+from xl9045qi.hotelgen import normalized_random_bounded as rand, log_scaled_value as lsv
 
 r = random.Random()
 f = Faker()
-
-THREAD_LOCK = Lock()
 
 HOTEL_NAME_TEMPLATES = [
     "{adj} {noun} {type}",
@@ -71,6 +69,13 @@ HOTEL_DOMAIN_TLDS = [
     ".travel",
     ".vacations"
 ]
+CREDIT_CARDS = [
+    "Visa"
+    "American Express",
+    "MasterCard",
+    "Discover",
+    "Diners Club"
+]
 
 ZIPCODES = json.load(open(os.path.dirname(__file__) + "/data/zipcodes.json","r"))
 ZIPCODES_FLAT = {zc: state_code for state_code, zc_dict in ZIPCODES.items() for zc, city in zc_dict.items()}
@@ -87,10 +92,10 @@ class HotelGen():
     def __init__(self, job: dict):
         self.job = job
         # Store hotels here
-        self.hotels = []
-        self.customers = []
-        self.gen_params = {}
         self.state = {}
+        self.state['hotels'] = []
+        self.state['customers'] = []
+        self.state['gen_params'] = {}
 
     def export(self, path: str):
         """Export the generated hotel data to a specified path as a pickle file.
@@ -100,15 +105,13 @@ class HotelGen():
         """
         with open(path, "wb") as f:
             data = {
-                "params": self.gen_params,
+                "params": self.state['gen_params'],
                 "jobfile": self.job,
-                "hotels": self.hotels,
-                "customers": self.customers,
                 "state": self.state
             }
             pickle.dump(data, f)
 
-        #print(f"Exported {len(self.hotels)} hotels to {path}.")
+        #print(f"Exported {len(self.state['hotels'])} hotels to {path}.")
     
     def import_pkl(self, path: str):
         """Import generated hotel data from a specified pickle file.
@@ -118,10 +121,7 @@ class HotelGen():
         """
         with open(path, "rb") as f:
             data = pickle.load(f)
-            self.gen_params = data.get("params", {})
             self.job = data.get("jobfile", {})
-            self.hotels = data.get("hotels", [])
-            self.customers = data.get("customers", [])
             self.state = data.get("state", {})
 
     def start(self):
@@ -153,7 +153,7 @@ class HotelGen():
         print(f"  - {resort_count:4d} resorts")
         print(f"  - {hotel_count:4d} hotels")
         print(f"  - {motel_count:4d} motels")
-        self.gen_params['property_distribution'] = {
+        self.state['gen_params']['property_distribution'] = {
             "resorts": resort_count,
             "hotels": hotel_count,
             "motels": motel_count
@@ -173,7 +173,7 @@ class HotelGen():
                 region = r.choice(list(PARAMS['tourist_regions'].keys()))
             
             hotel = generate_hotel("resort", tourist_region=region, state="")
-            self.hotels.append(hotel)
+            self.state['hotels'].append(hotel)
 
         # Phase 1.2: Generate hotels
         dist = generate_state_distribution(hotel_count, reassignments=total_property_count//25)
@@ -181,7 +181,7 @@ class HotelGen():
             for state, count in dist.items():
                 for _ in range(count):
                     hotel = generate_hotel("hotel", state=state)
-                    self.hotels.append(hotel)
+                    self.state['hotels'].append(hotel)
                     pbar.update(1)
         # Phase 1.3: Generate motels
         dist = generate_state_distribution(motel_count, reassignments=total_property_count//25)
@@ -189,15 +189,15 @@ class HotelGen():
             for state, count in dist.items():
                 for _ in range(count):
                     hotel = generate_hotel("motel", state=state)
-                    self.hotels.append(hotel)
+                    self.state['hotels'].append(hotel)
                     pbar.update(1)
 
         # Assign an incrementing ID to each hotel
-        r.shuffle(self.hotels)
-        for idx, hotel in enumerate(self.hotels):
+        r.shuffle(self.state['hotels'])
+        for idx, hotel in enumerate(self.state['hotels']):
             hotel['id'] = idx + 1
 
-        print(f"{len(self.hotels)} hotels generated successfully.")
+        print(f"{len(self.state['hotels'])} hotels generated successfully.")
         self.state['last_phase'] = 1
         self.export("01-hotels-generated.pkl")
 
@@ -211,7 +211,7 @@ class HotelGen():
 
         # Generate a distribution of customers per state
         cdist = generate_state_distribution(total_customer_count, sd = customer_count_state_sd, reassignments=total_customer_count//500)
-        self.gen_params['customer_state_distribution'] = dict(cdist) # make a copy
+        self.state['gen_params']['customer_state_distribution'] = dict(cdist) # make a copy
         
         # Generate distribution of customers per customer class
         c_classes = list(PARAMS['customer_archetypes'].keys())
@@ -221,7 +221,7 @@ class HotelGen():
         # Scale c_class_probs up to counts
         c_class_counts = {k: v for k, v in zip(c_classes, [int(round(p * total_customer_count)) for p in c_class_probs])}
 
-        self.gen_params['customer_class_distribution'] = dict(c_class_counts) # make a copy
+        self.state['gen_params']['customer_class_distribution'] = dict(c_class_counts) # make a copy
 
         # Generate customers using concurrent.futures
 
@@ -229,9 +229,8 @@ class HotelGen():
             for _ in range(total_customer_count):
                 while True:
                     this_state = r.choice(list(cdist.keys()))
-                    with THREAD_LOCK:
-                        if cdist[this_state] <= 0:
-                            continue
+                    if cdist[this_state] <= 0:
+                        continue
                     break
                 # Pick type based on c_class_counts
                 while True:
@@ -239,31 +238,32 @@ class HotelGen():
                     
                     this_type = c_classes[this_type - 1]
 
-                    with THREAD_LOCK:                    
-                        if c_class_counts[this_type] <= 0:
-                            continue
+                    if c_class_counts[this_type] <= 0:
+                        continue
                     break
                 customer = generate_customer(this_type, state=this_state)
-                with THREAD_LOCK:
-                    self.customers.append(customer)
-                    cdist[this_state] -= 1
-                    c_class_counts[this_type] -= 1
+                self.state['customers'].append(customer)
+                cdist[this_state] -= 1
+                c_class_counts[this_type] -= 1
                 pbar.update(1)
             
-        r.shuffle(self.customers)
-        for idx, customer in enumerate(self.customers):
+        r.shuffle(self.state['customers'])
+        for idx, customer in enumerate(self.state['customers']):
             customer['id'] = idx + 1
 
-        print(f"{len(self.customers)} customers generated successfully.")
+        print(f"{len(self.state['customers'])} customers generated successfully.")
         self.state['last_phase'] = 2
         self.export("02-customers-generated.pkl")
 
         # Total of all hotel rooms
-        total_room_count = sum([sum(hotel['rooms'].values()) for hotel in self.hotels])
+        total_room_count = sum([sum([room_info['count'] for room_info in hotel['rooms'].values()]) for hotel in self.state['hotels']])
         print(f"There are a total of {total_room_count} rooms across all hotels generated.")
 
         print("Preparing for simulation...")
         self.prepare_simulation()
+
+        # run one day
+        self.process_day(1)
 
     def prepare_simulation(self):
         """Prepare the generated data for simulation use.
@@ -274,8 +274,9 @@ class HotelGen():
         # First, we need a simple dict consisting of key = id, value = dict with key = room type, value = empty list.
         self.state['occupied_rooms'] = {
             hotel['id']: {room_type: [] for room_type in hotel['rooms'].keys()}
-            for hotel in self.hotels
+            for hotel in self.state['hotels']
         }
+        # Lists will contain tuples of (customer_id, checkout_date, stay_length)
 
         # We also need a list to manage currently occupied *Customers*
         # The values in these lists will be tuples of (id, available_date).
@@ -292,15 +293,146 @@ class HotelGen():
         for archetype in PARAMS['customer_archetypes'].keys():
             self.state['cache']['customers_by_archetype'][archetype] = [
                 customer['id']
-                for customer in self.customers
+                for customer in self.state['customers']
                 if customer['type'] == archetype
             ]
         
+        # All hotels by ID
+        self.state['cache']['hotels_by_id'] = {
+            hotel['id']: hotel
+            for hotel in self.state['hotels']
+        }
+
         self.state['current_day'] = datetime.datetime.strptime(self.job['generation']['dates']['start'], "%Y-%m-%d")
         end_day = datetime.datetime.strptime(self.job['generation']['dates']['end'], "%Y-%m-%d")
         self.state['days_left'] = (end_day - self.state['current_day']).days + 1 
 
+        # Will hold transaction events.
+        # Transactions will be stored as dicts and normalized when database insert is
+        # performed.
+        self.state['transactions'] = []
+
         print(f"Preparation ready. Will generate {self.state['days_left']} days of simulated transactions.")
+
+    def process_day(self,day: int = 0):
+        """Process a single day of simulation.
+
+        Remarks:
+            This will run one day's worth of simulation and update all of the local
+            state.
+        """
+
+        # Step 1. Scan for any hotels that have checkouts today.
+        # If found, introduce a financial transaction recording the checkout.
+
+        # hotel_state contains hotel ID as keys; each value has room type as key, booking as value
+
+        for hotel_id in self.state['occupied_rooms'].keys():
+            hotel = self.state['cache']['hotels_by_id'][hotel_id]
+            for rt in self.state['occupied_rooms'][hotel_id]:
+                for booking in self.state['occupied_rooms'][hotel_id][rt]:
+                    if booking[1] <= self.state['current_day']:
+                        # Checkout today
+                        # Record transaction                        
+                        trans = self.generate_transaction(hotel_id, booking[0], booking[2], rt)
+                        self.state['transactions'].append(trans)
+
+                        # Free up room
+                        self.state['occupied_rooms'][hotel_id][rt].remove(booking)
+
+        # Step 2: Determine today's occupancy percentage.
+        today_occupancy = lsv(day, 0, 45, -0.4) / 45.0
+
+        # Step 3: For each hotel, determine how many rooms to fill today.
+        hotel_desired_occupancy = {}
+        for hotel in self.state['hotels']:
+            hotel_desired_occupancy[hotel['id']] = int(round(sum([room_info['count'] for room_info in hotel['rooms'].values()]) * today_occupancy))
+
+        print(hotel_desired_occupancy)
+        exit(1)
+
+
+
+
+
+    def generate_transaction(self, hotel_id: int, customer: int, stay_length: int, room_type: str):
+        # Get this hotel's base prices
+
+        OVERALL_TOTAL = 0
+
+        this_hotel = self.state['cache']['hotels_by_id'][hotel_id]
+        base_price = this_hotel['base_price']
+        room_price = base_price * this_hotel['rooms'][room_type]['price']
+        transaction = {
+            'customer_id': customer,
+            'check_in_date': (self.state['current_day'] - datetime.timedelta(days=stay_length)).strftime("%Y-%m-%d"),
+            'check_out_date': self.state['current_day'],
+        }
+
+        room_cost = room_price * stay_length
+
+        line_items = [
+            {
+                "description": f"Room Charge - {stay_length} nights @ ${room_price:.2f}/night",
+                "amount_per": room_price,
+                "quantity": stay_length,
+            }
+        ]
+
+        # If the hotel has a resort fee, add it 
+        if this_hotel.get('resort_fee', 0.0) > 0.0:
+            line_items.append({
+                "description": f"Resort Fee @ ${this_hotel['resort_fee']:.2f}/night",
+                "amount_per": this_hotel['resort_fee'],
+                "quantity": stay_length
+            })
+            room_cost += this_hotel['resort_fee'] * stay_length
+
+        OVERALL_TOTAL += room_cost
+
+        # If the hotel is in a state with sales tax, apply it
+        state_tax = PARAMS['state_data'].get(this_hotel['state'], {}).get('sales_tax', 0)
+        if state_tax > 0:
+            tax_amount = room_cost * state_tax
+            line_items.append({
+                "description": f"{this_hotel['state'].upper()} Sales Tax @ {state_tax*100:.2f}%",
+                "amount_per": tax_amount,
+                "quantity": 1
+            })
+            OVERALL_TOTAL += tax_amount
+
+        # If the state has luxury tax, apply it
+        # Luxury tax applies only if room cost exceeds $100 per night
+        if room_cost > 100:
+            luxury_tax = PARAMS['state_data'].get(this_hotel['state'], {}).get('luxury_tax', 0)
+            if luxury_tax > 0:
+                tax_amount = room_cost * luxury_tax
+                line_items.append({
+                    "description": f"{this_hotel['state'].upper()} Luxury Tax @ {luxury_tax*100:.2f}%",
+                    "amount_per": tax_amount,
+                    "quantity": 1
+                })
+                OVERALL_TOTAL += tax_amount
+
+        OVERALL_TOTAL = round(OVERALL_TOTAL, 2)
+        transaction['line_items'] = line_items
+        transaction['total'] = OVERALL_TOTAL
+
+        # Add a failed transaction 5% of the time
+        if r.random() < 0.05:
+            transaction['payment'] = {
+                "method": random.choice(CREDIT_CARDS) + " xxxx-" + str(r.randrange(10,9999)).zfill(4),
+                "amount": OVERALL_TOTAL,
+                "status": "DECLINED"    
+            }
+
+        transaction['payment'] = {
+            "method": random.choice(CREDIT_CARDS) + " xxxx-" + str(r.randrange(10,9999)).zfill(4),
+            "amount": OVERALL_TOTAL,
+            "status": "APPROVED"    
+        }
+
+        return transaction
 
 def get_stay_length(stay_weights: dict) -> int:
     """Generates a number of days for a hotel stay, based on the random factors for a customer archetype.
@@ -570,11 +702,23 @@ def generate_hotel(hotel_type: str, state: str = "MN", tourist_region: str = "")
         price_multiplier = rand(price_multiplier_m, price_multiplier_sd, min_val=0.5)
     else:
         # Get state multiplier
-        state_multiplier_m = PARAMS['state_price_multipliers'].get(state.upper(), {}).get('mean', 1.0)
-        state_multiplier_sd = PARAMS['state_price_multipliers'].get(state.upper(), {}).get('sd', 0.0)
+        state_multiplier_m = PARAMS['state_data'].get(state.upper(), {}).get('price_multipliers', {}).get('mean', 1.0)
+        state_multiplier_sd = PARAMS['state_data'].get(state.upper(), {}).get('price_multipliers', {}).get('sd', 0.0)
         price_multiplier = rand(state_multiplier_m, state_multiplier_sd, min_val=0.5)
     
     base_price = base_price * price_multiplier
+
+    # For each room type, figure out its actual cost.
+    for room_type in room_distribution.keys():
+        room_type_obj = PARAMS['room_types'].get(room_type, {})
+        room_type_multiplier = room_type_obj.get('price_multiplier', {}).get('mean', 1)
+        room_type_multiplier_sd = room_type_obj.get('price_multiplier', {}).get('sd', 0.0)
+        room_type_multiplier_val = rand(room_type_multiplier, room_type_multiplier_sd, min_val=0.5)
+        # Store the final price for this room type
+        room_distribution[room_type] = {
+            "count": room_distribution[room_type],
+            "price": round(base_price * room_type_multiplier_val, 2)
+        }
 
     # If we have a resort fee, determine what it will be
     if tourist_region and hotel_type_obj['name'].lower() == "resort":
@@ -693,40 +837,3 @@ def generate_street_number():
         street = r.randrange(100,10000)
     return street
 
-def log_scaled_value(x: float, min: float, max: float, curve_factor: float) -> float:
-    """
-    Generate an approximately logarithmically-scaled value given min, max, curve_factor and point (x).
-    
-    :param x: The point between min and max to scale
-    :param min: The value at the low end of the range
-    :param max: The value at the high end of the range
-    :param curve_factor: How steep the curve is. 0 = completely linear, 1 = always max, -1 = always min.
-    """
-
-    # Handle degenerate range
-    if max == min:
-        return min
-
-    # Handle 0 factor
-    if curve_factor == 0.0:
-        return x
-
-    # Normalize and clamp
-    t = (x - min) / (max - min)
-    t = 0.0 if t < 0.0 else 1.0 if t > 1.0 else t
-
-    # Clamp factor
-    if curve_factor < -1.0: curve_factor = -1.0
-    if curve_factor >  1.0: curve_factor =  1.0
-
-    # Edge factors (avoid division by zero / infinity math surprises)
-    if curve_factor == 1.0:
-        return min if t == 0.0 else max
-    if curve_factor == -1.0:
-        return max if t == 1.0 else min
-
-    # Map factor -> exponent
-    k = (1.0 - curve_factor) / (1.0 + curve_factor)
-
-    # Curve and rescale
-    return min + (max - min) * (t ** k)
