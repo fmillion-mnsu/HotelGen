@@ -245,7 +245,6 @@ class DatabaseLoader():
         # First, we load the hotels.
         hotel: Hotel
         self.set_identity_insert("property", True)
-        self.set_identity_insert("property_rooms", True)
         for hotel in tqdm.tqdm(state['hotels'], desc="Loading properties"):
             cursor.execute("""
                 INSERT INTO property (id, name, street_address, city, state, zip, email, website, phone)
@@ -272,9 +271,11 @@ class DatabaseLoader():
                     # Insert it with both code and description
                     rt_name = data.room_types.get(rt, {}).get('name', rt)
                     cursor.execute("""
-                        INSERT INTO room_type (code, description) VALUES (?, ?);
+                        INSERT INTO room_type (code, description)
+                        OUTPUT INSERTED.id
+                        VALUES (?, ?);
                     """, (rt, rt_name))
-                    room_type_id = cursor.lastrowid
+                    room_type_id = cursor.fetchone()[0]
                 else:
                     room_type_id = row[0]
 
@@ -291,7 +292,6 @@ class DatabaseLoader():
                 ))
         cursor.connection.commit()
         self.set_identity_insert("property", False)
-        self.set_identity_insert("property_rooms", False)
 
         # Now, load customers
         self.set_identity_insert("customer", True)        
@@ -315,7 +315,6 @@ class DatabaseLoader():
         self.set_identity_insert("customer", False)
 
         # Lets now load the events (events are still dicts, not dataclasses)
-        self.set_identity_insert("event", True)
         for event in tqdm.tqdm(state['events'], desc="Loading events"):
             if event['event'] == 'checkin':
                 event_code = 'checkin'
@@ -333,10 +332,8 @@ class DatabaseLoader():
                 event_date
             ))
         cursor.connection.commit()
-        self.set_identity_insert("event", False)
 
         # And finally the transactions
-        self.set_identity_insert("transact", True)
         transaction: Transaction
         for transaction in tqdm.tqdm(state['transactions'], desc="Loading transactions"):
             # Parse payment method (e.g., "Visa xxxx-1234" -> method="Visa", stub="xxxx-1234")
@@ -346,6 +343,7 @@ class DatabaseLoader():
 
             cursor.execute("""
                 INSERT INTO transact (transaction_date, customer_id, hotel_id, amount, payment_method, payment_card_stub)
+                OUTPUT INSERTED.id
                 VALUES (?, ?, ?, ?, ?, ?);
             """, (
                 transaction.check_out_date,
@@ -355,7 +353,7 @@ class DatabaseLoader():
                 payment_method,
                 payment_card_stub
             ))
-            transaction_id = cursor.lastrowid
+            transaction_id = cursor.fetchone()[0]
 
             for line in transaction.line_items:
                 cursor.execute("""
@@ -368,7 +366,6 @@ class DatabaseLoader():
                     line.quantity
                 ))
         cursor.connection.commit()
-        self.set_identity_insert("transact", False)
 
         print("Data load completed!")
     

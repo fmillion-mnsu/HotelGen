@@ -14,6 +14,7 @@ This program is being developed in phases:
       - [x] Resort fees
 * **Phase 2:** Expand with generation of:
     - [ ] Employee records per hotel (with basic payroll)
+    - [ ] Amenities at resorts
     - [ ] Incidental charges (e.g. a retail-style marketplace)
     - [ ] Room service
     - [ ] Special resort charges - fitness room/spa/massage fees, concierge, tips...
