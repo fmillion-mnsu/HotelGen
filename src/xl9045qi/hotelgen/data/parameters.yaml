@@ -1,6 +1,6 @@
 hotel_regions:
 
-  far_north: 
+  far_north:
     states:
       - AK
     pools:
@@ -15,7 +15,7 @@ hotel_regions:
       indoor: 0.4
       outdoor: 0.8
 
-  northwest: 
+  northwest:
     states:
       - WA
       - OR
@@ -291,7 +291,7 @@ state_data:
   GA:             # Atlanta market
     price_multiplier:
       mean: 0.80
-      sd: 0.08  
+      sd: 0.08
     sales_tax: 0.04
     luxury_tax: 0.11
   MI:
@@ -309,13 +309,13 @@ state_data:
   SC:             # Charleston/Myrtle Beach
     price_multiplier:
       mean: 0.78
-      sd: 0.08  
+      sd: 0.08
     sales_tax: 0.06
     luxury_tax: 0.105
   TN:             # Nashville tourism
     price_multiplier:
       mean: 0.78
-      sd: 0.08  
+      sd: 0.08
     sales_tax: 0.07
     luxury_tax: 0.125
   NH:
@@ -327,7 +327,7 @@ state_data:
   VT:             # Ski areas
     price_multiplier:
       mean: 0.78
-      sd: 0.07  
+      sd: 0.07
     sales_tax: 0.06
     luxury_tax: 0.10
   ME:
@@ -475,12 +475,12 @@ state_data:
   WY:
     price_multiplier:
       mean: 0.65
-      sd: 0.06  
+      sd: 0.06
     sales_tax: 0.04
     luxury_tax: 0.09
 
 tourist_regions:
-  las_vegas: 
+  las_vegas:
     main_state: NV
     zip_prefixes:
       #- '889'
@@ -500,7 +500,7 @@ tourist_regions:
         min: 1500
         max: 5000
 
-  orlando: 
+  orlando:
     main_state: FL
     zip_prefixes:
       - '327'
@@ -514,7 +514,7 @@ tourist_regions:
       sd: 4.00
       probability: 0.6
 
-  miami_beach: 
+  miami_beach:
     main_state: FL
     zip_prefixes:
       - '331'
@@ -524,7 +524,7 @@ tourist_regions:
       mean: 1.50
       sd: 0.12
 
-  tampa_bay: 
+  tampa_bay:
     main_state: FL
     zip_prefixes:
       - '335'
@@ -533,7 +533,7 @@ tourist_regions:
       mean: 1.15
       sd: 0.08
 
-  myrtle_beach: 
+  myrtle_beach:
     main_state: SC
     zip_prefixes:
       - '295'
@@ -541,7 +541,7 @@ tourist_regions:
       mean: 1.20
       sd: 0.08
 
-  scottsdale: 
+  scottsdale:
     main_state: AZ
     zip_prefixes:
       - '852'
@@ -550,7 +550,7 @@ tourist_regions:
       mean: 1.45
       sd: 0.10
 
-  new_orleans: 
+  new_orleans:
     main_state: LA
     zip_prefixes:
       - '700'
@@ -559,7 +559,7 @@ tourist_regions:
       mean: 1.25
       sd: 0.10
 
-  nashville: 
+  nashville:
     main_state: TN
     zip_prefixes:
       - '370'
@@ -596,7 +596,7 @@ tourist_regions:
       mean: 1.50
       sd: 0.12
 
-  lake_tahoe: 
+  lake_tahoe:
     main_state: CA
     zip_prefixes:
       - '961'
@@ -608,7 +608,7 @@ tourist_regions:
       sd: 5.00
       probability: 0.4
 
-  wisconsin_dells: 
+  wisconsin_dells:
     main_state: WI
     zip_prefixes:
       - '539'
@@ -628,7 +628,7 @@ tourist_regions:
 
 hotel_types:
   motel:
-    id: 1 
+    id: 1
     name: "Motel"
     base_price:
       mean: 69.00
@@ -660,7 +660,7 @@ hotel_types:
         min: 60
         max: 250
       distribution:
-        1kn:  
+        1kn:
           mean: 0.3
           sd: 0.1
         2qn:

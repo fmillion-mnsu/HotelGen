@@ -15,16 +15,16 @@ def phase3(inst: HGSimulationState):
 
     if inst.state.get("last_phase", -1) >= 3:
         print("[bold]Phase 3 already completed, skipping.")
-        return    
+        return
 
-    # First, we need a simple dict consisting of 
-    #   key: dict 
+    # First, we need a simple dict consisting of
+    #   key: dict
     # with key = room type, value = empty list.
     inst.state['occupied_rooms'] = {
         hotel.id: {room_type: [] for room_type in hotel.rooms.keys()}
         for hotel in inst.state['hotels']
     }
-    
+
     # Lists will contain tuples of (customer_id, checkout_date, stay_length)
 
     # We also need a list to manage currently occupied *Customers*
@@ -61,7 +61,7 @@ def phase3(inst: HGSimulationState):
     # Prepare the current day state
     inst.state['current_day'] = datetime.datetime.strptime(inst.job['generation']['dates']['start'], "%Y-%m-%d")
     end_day = datetime.datetime.strptime(inst.job['generation']['dates']['end'], "%Y-%m-%d")
-    inst.state['days_left'] = (end_day - inst.state['current_day']).days + 1 
+    inst.state['days_left'] = (end_day - inst.state['current_day']).days + 1
 
     # Will hold transaction events.
     # Transactions will be stored as dicts and normalized when database insert is

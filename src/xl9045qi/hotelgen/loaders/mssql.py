@@ -119,7 +119,7 @@ SCHEMA = {
 }
 
 class DatabaseLoader():
-    
+
     def drop_all_tables(self):
         """Drop all user tables, handling foreign key constraints properly."""
         cursor = self._conn.cursor()
@@ -159,14 +159,14 @@ class DatabaseLoader():
                 self._conn.commit()
             except Exception as e:
                 print(f"Warning: Could not drop table {table_name}: {e}")
-    
+
     def connect(self) -> bool:
         # Try to connect first
         print("Connecting to the database...",end="",flush=True)
 
         try:
             conn = mssql.connect(
-                server=self.job["database"]["host"],   
+                server=self.job["database"]["host"],
                 uid=self.job["database"]["username"],
                 pwd=self.job["database"]["password"],
                 database=self.job["database"]["dbname"],
@@ -179,7 +179,7 @@ class DatabaseLoader():
             print("       " + str(e))
             print()
             return False
-        
+
         print("OK.")
 
         self._conn = conn
@@ -437,4 +437,3 @@ class DatabaseLoader():
         cursor.connection.commit()
 
         print("Data load completed!")
-    

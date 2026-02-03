@@ -29,5 +29,5 @@ This program is being developed in phases:
     - [ ] Website and SEO data (e.g. click tracking, website descriptions, potentially enough to generate full "websites" given AI generated hotel imagery and descriptive writing)
 * **Phase 4:** TBD
 
-The primary purpose of this software is to support my teaching of **CIS 444/544: Data Analytics** in my role as faculty at Minnesota State University, Mankato. However, this tooling may be useful to anyone interested in studying data analytics. 
+The primary purpose of this software is to support my teaching of **CIS 444/544: Data Analytics** in my role as faculty at Minnesota State University, Mankato. However, this tooling may be useful to anyone interested in studying data analytics.
 

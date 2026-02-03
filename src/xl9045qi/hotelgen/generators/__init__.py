@@ -56,13 +56,13 @@ def generate_street_number():
 
 def generate_stay_length(stay_weights: dict) -> int:
     """Generates a number of days for a hotel stay, based on the random factors for a customer archetype.
-    
+
     Args:
         stay_weights (dict): A dictionary containing weightsfor stay length.
-    
+
     Returns:
         int: The generated number of days for the stay.
-    
+
     Remarks:
         The weights dict consists of keys that are strings representing either a
         single integer (e.g. '5') or a range of values, max-exclusive (same as range()
@@ -74,7 +74,7 @@ def generate_stay_length(stay_weights: dict) -> int:
     total_weight = sum(stay_weights.values())
     if total_weight != 1.0:
         stay_weights = {k: v / total_weight for k, v in stay_weights.items()}
-    
+
     # Next, generate a random float between 0 and 1.
     rand_val = r.random()
 

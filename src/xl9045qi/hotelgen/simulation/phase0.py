@@ -47,7 +47,7 @@ def phase0(inst: HGSimulationState):
     motel_count = int(total_property_count * motel_fraction)
     if resort_count + hotel_count + motel_count < total_property_count:
         resort_count += total_property_count - (resort_count + hotel_count + motel_count)
-    
+
     print(f"  - {resort_count:4d} resorts")
     print(f"  - {hotel_count:4d} hotels")
     print(f"  - {motel_count:4d} motels")

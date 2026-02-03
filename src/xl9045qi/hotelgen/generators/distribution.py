@@ -7,7 +7,7 @@ def generate_state_distribution(count: int, sd: float = 0.0, reassignments: int 
     total desired number of entities. This is used both for hotel and customer generation.
 
     This uses the built in population distribution data to determine a reasonable
-    number of hotels per state, with variation built in. 
+    number of hotels per state, with variation built in.
 
     Returns a dict containing state codes as key and the number of hotels as an int value.
 
@@ -15,10 +15,10 @@ def generate_state_distribution(count: int, sd: float = 0.0, reassignments: int 
         count (int): The total number of entities to distribute.
         sd (float, optional): The standard deviation to deviate each population multiplier by. Defaults to 0.0 (use multipliers as-is)
         reassignments (int, optional): The number of random reassignments to perform. Defaults to 0.
-    
+
     Returns:
         dict: A dictionary with state codes as keys and number of entities as values.
-    
+
     Remarks:
         Even if you use sd > 0.0, the final distribution will always sum to 'count'.
         Random reassignments will always be performed to bring the total to 'count' if needed.
@@ -47,7 +47,7 @@ def generate_state_distribution(count: int, sd: float = 0.0, reassignments: int 
         # add one to a random state
         state = r.choice(list(distribution.keys()))
         distribution[state] += 1
-    
+
     # 4.2. If we ended up with too many, subtract from random states.
     while sum(distribution.values()) > count:
         state = r.choice(list(distribution.keys()))
@@ -65,5 +65,5 @@ def generate_state_distribution(count: int, sd: float = 0.0, reassignments: int 
                 distribution[state_to] += 1
                 break
             continue # Try again if we couldn't reassign
-            
+
     return distribution

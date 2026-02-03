@@ -11,7 +11,7 @@ def normalized_random_bounded(mean, sd, min_val=None, max_val=None) -> float:
 def log_scaled_value(x: float, min: float, max: float, curve_factor: float) -> float:
     """
     Generate an approximately logarithmically-scaled value given min, max, curve_factor and point (x).
-    
+
     :param x: The point between min and max to scale
     :param min: The value at the low end of the range
     :param max: The value at the high end of the range

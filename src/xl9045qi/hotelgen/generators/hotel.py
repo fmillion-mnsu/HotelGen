@@ -68,7 +68,7 @@ def generate_hotel(hotel_type: str, state: str = "MN", tourist_region: str = "")
 
     # Hotel name generation
     hotel_name_fmt = r.choice(data.misc['hotel_name_templates'])
-    
+
     hotel_name = hotel_name_fmt.format(
         adj=hotel_name_parts[0],
         noun=hotel_name_parts[1],
@@ -132,7 +132,7 @@ def generate_hotel(hotel_type: str, state: str = "MN", tourist_region: str = "")
             room_count_min = room_count_data.get('min', 50)
             room_count_max = room_count_data.get('max', 300)
         room_count = rand(room_count_mean, room_count_sd, min_val=room_count_min, max_val=room_count_max)
-    
+
     # Ok, now figure out the distribution of rooms
     room_dist_data = hotel_type_obj.get('rooms', {}).get('distribution', {})
     room_distribution = {}
@@ -141,7 +141,7 @@ def generate_hotel(hotel_type: str, state: str = "MN", tourist_region: str = "")
         sd = room_dist_data[room_type].get('sd', 0.1)
         prob = rand(m, sd, min_val=0.0, max_val=1.0)
         room_distribution[room_type] = int(round(prob * room_count))
-        
+
     # Ensure we have exactly room_count items; if not, add or remove from random types
     while sum(room_distribution.values()) < room_count:
         rt = r.choice(list(room_distribution.keys()))
@@ -150,7 +150,7 @@ def generate_hotel(hotel_type: str, state: str = "MN", tourist_region: str = "")
         rt = r.choice(list(room_distribution.keys()))
         if room_distribution[rt] > 0:
             room_distribution[rt] -= 1
-    
+
     # Now we know the room distribution
 
     ### --- PRICING --- ###
@@ -170,7 +170,7 @@ def generate_hotel(hotel_type: str, state: str = "MN", tourist_region: str = "")
         state_multiplier_m = data.state_data.get(state.upper(), {}).get('price_multipliers', {}).get('mean', 1.0)
         state_multiplier_sd = data.state_data.get(state.upper(), {}).get('price_multipliers', {}).get('sd', 0.0)
         price_multiplier = rand(state_multiplier_m, state_multiplier_sd, min_val=0.5)
-    
+
     base_price = base_price * price_multiplier
 
     # For each room type, figure out its actual cost.

@@ -41,7 +41,7 @@ def select_room_type(inst: HGSimulationState, hotel_id: int):
     # If NO rooms are available, return None.
     if sum(room_type_counts.values()) <= 0:
         return None
-    
+
     # For any room type is not available, remove it from the selection pool
     for rt in list(room_type_counts.keys()):
         if room_type_counts[rt] <= 0:
@@ -49,13 +49,13 @@ def select_room_type(inst: HGSimulationState, hotel_id: int):
 
     # Finally, select a random room from the remaining available types
     return r.choice(list(room_type_counts.keys()))
-    
+
 def get_customer_distribution(desired_count: int):
-    
+
     # First, we need to figure out the right distribution for the customer and scale
     # the desired_count accordingly
     expected_counts = {
-        k: v['percentage'] * desired_count 
+        k: v['percentage'] * desired_count
         for k, v in data.customer_archetypes.items()
     }
 
@@ -67,13 +67,13 @@ def get_customer_distribution(desired_count: int):
         decre = r.choice(list(expected_counts.keys()))
         if expected_counts[decre] > 0:
             expected_counts[decre] -= 1
-    
+
     # Round all counts
     for k in expected_counts.keys():
         expected_counts[k] = int(round(expected_counts[k]))
 
     return expected_counts
- 
+
 def process_day(inst: HGSimulationState):
     """Process a single day of simulation.
 
@@ -91,7 +91,7 @@ def process_day(inst: HGSimulationState):
         inst.state['current_day_num'] = 1
     else:
         inst.state['current_day_num'] += 1
-    
+
     # Advance the datetime object too
     inst.state['current_day'] += datetime.timedelta(days=1)
     day = inst.state['current_day_num']
@@ -198,7 +198,7 @@ def process_day(inst: HGSimulationState):
 
         # Now, select the customers
         customer_ids = r.sample(all_customers_in_grp, customer_counts[ct])
-        customer_counts[ct] = customer_ids  # Replace count with list of IDs 
+        customer_counts[ct] = customer_ids  # Replace count with list of IDs
 
     # Now collapse the list of customer IDs into a flat random list
     all_customer_ids = []
@@ -222,7 +222,7 @@ def process_day(inst: HGSimulationState):
                 # Check in the user
                 try:
                     this_cid = all_customer_ids.pop()
-                except IndexError:  
+                except IndexError:
                     # No more customers. Continue
                     continue
                 customer_type = inst.state['cache']['customers_by_id'][this_cid].type

@@ -39,7 +39,7 @@ class HGSimulationState:
             pickle.dump(data, f)
 
         #print(f"Exported {len(inst.state['hotels'])} hotels to {path}.")
-    
+
     def import_pkl(self, path: str):
         """Import generated hotel data from a specified pickle file.
 
@@ -79,7 +79,7 @@ class HGSimulationState:
         ))
 
         customer_data = self.state['cache']['customers_by_id'][customer_id]
-        
+
         self.state['occupied_customers'][customer_data.type].append((
             customer_id,
             hotel_id,

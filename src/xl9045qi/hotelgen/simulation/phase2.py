@@ -42,7 +42,7 @@ def phase2(inst: HGSimulationState):
     # Generate a distribution of customers per state
     cdist = generate_state_distribution(total_customer_count, sd = customer_count_state_sd, reassignments=total_customer_count//500)
     inst.state['gen_params']['customer_state_distribution'] = dict(cdist) # make a copy
-    
+
     # Generate distribution of customers per customer class
     c_classes = list(data.customer_archetypes.keys())
     c_class_probs = [data.customer_archetypes[c]['percentage'] for c in c_classes]
@@ -75,7 +75,7 @@ def phase2(inst: HGSimulationState):
             cdist[this_state] -= 1
             c_class_counts[this_type] -= 1
             pbar.update(1)
-        
+
     r.shuffle(inst.state['customers'])
     for idx, customer in enumerate(inst.state['customers']):
         customer.id = idx + 1

@@ -37,7 +37,7 @@ def phase1(inst: HGSimulationState):
             region = tourist_regions.pop()
         else:
             region = r.choice(list(data.tourist_regions.keys()))
-        
+
         hotel = generate_hotel("resort", tourist_region=region, state="")
         inst.state['hotels'].append(hotel)
 

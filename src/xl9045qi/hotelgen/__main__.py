@@ -72,19 +72,19 @@ def main():
 
     print("Writing output to " + output_path)
     generator.export(output_path)
-    
+
     if args.no_database:
         print("Skipping database load.")
         print(f"Output has been written to {output_path}.")
         print("You can import this into your database by executing:\n")
         print(f"  hotelgen -i {output_path}\n")
-    
+
     else:
         print("Loading data into database...")
         db.load_data(generator.state)
 
     print("Exiting program.")
     os._exit(0)
-    
+
 if __name__ == "__main__":
     main()
