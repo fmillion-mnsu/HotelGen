@@ -22,6 +22,7 @@ class HGSimulationState:
         self.state['transactions'] = []
         self.state['events'] = []
         self.state['gen_params'] = {}
+        self.state['next_transaction_id'] = 1
 
     def export(self, path: str):
         """Export the generated hotel data to a specified path as a pickle file.
@@ -128,4 +129,6 @@ class HGSimulationState:
         self.state['events'].append(checkout_event)
 
         trans = generate_transaction(self, hotel_id, booking[0], booking[2] - skipped_days, booking[3])
+        trans.id = self.state['next_transaction_id']
+        self.state['next_transaction_id'] += 1
         self.state['transactions'].append(trans)

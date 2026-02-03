@@ -82,3 +82,4 @@ class Transaction:
     line_items: list[LineItem]
     total: float
     payment: Payment
+    id: Optional[int] = None

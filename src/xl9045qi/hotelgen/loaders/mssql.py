@@ -4,6 +4,15 @@ import tqdm
 from xl9045qi.hotelgen import data
 from xl9045qi.hotelgen.models import Hotel, Customer, Transaction
 
+
+def chunked_executemany(cursor, query, values, chunk_size=10000, desc="Inserting"):
+    """Execute a query with many values in chunks, showing progress."""
+    total = len(values)
+    for i in tqdm.tqdm(range(0, total, chunk_size), desc=desc, unit="chunk"):
+        chunk = values[i:i + chunk_size]
+        cursor.executemany(query, chunk)
+    return total
+
 # Property example:
 # {
 #     "name": "Acceptable Beaker Hotel",
@@ -237,38 +246,49 @@ class DatabaseLoader():
 
         cursor = self._conn.cursor()
 
-        # Load room types first.
-        for rt in data.room_types.keys():
-            cursor.execute("INSERT INTO room_type (id, code, description) VALUES (?, ?, ?)", (data.room_types[rt]['id'], rt, data.room_types[rt]['name']))
+        # Load room types first - batch insert
+        print("Loading room types...")
+        room_type_values = [
+            (data.room_types[rt]['id'], rt, data.room_types[rt]['name'])
+            for rt in data.room_types.keys()
+        ]
+        if room_type_values:
+            cursor.executemany(
+                "INSERT INTO room_type (id, code, description) VALUES (?, ?, ?)",
+                room_type_values
+            )
         cursor.connection.commit()
 
-        # First, we load the hotels.
-        hotel: Hotel
+        # First, we load the hotels - batch insert
+        print("Collecting property data...")
         self.set_identity_insert("property", True)
-        for hotel in tqdm.tqdm(state['hotels'], desc="Loading properties"):
-            cursor.execute("""
+
+        # Collect all property values
+        property_values = [
+            (hotel.id, hotel.name, hotel.street, hotel.city, hotel.state,
+             hotel.zip, hotel.email, hotel.website, hotel.phone)
+            for hotel in state['hotels']
+        ]
+
+        # Batch insert properties
+        if property_values:
+            cursor.executemany("""
                 INSERT INTO property (id, name, street_address, city, state, zip, email, website, phone)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-            """, (
-                hotel.id,
-                hotel.name,
-                hotel.street,
-                hotel.city,
-                hotel.state,
-                hotel.zip,
-                hotel.email,
-                hotel.website,
-                hotel.phone
-            ))
+            """, property_values)
+        print(f"Inserted {len(property_values)} properties")
 
+        # Build room_type lookup cache
+        cursor.execute("SELECT id, code FROM room_type")
+        room_type_cache = {code: id for id, code in cursor.fetchall()}
+
+        # Collect all property_rooms values
+        property_rooms_values = []
+        for hotel in state['hotels']:
             for rt, room_info in hotel.rooms.items():
-                # First, ensure the room type exists (lookup by code, not description)
-                cursor.execute("""
-                    SELECT id FROM room_type WHERE code = ?;
-                """, (rt,))
-                row = cursor.fetchone()
-                if row is None:
-                    # Insert it with both code and description
+                room_type_id = room_type_cache.get(rt)
+                if room_type_id is None:
+                    # Room type doesn't exist, insert it and update cache
                     rt_name = data.room_types.get(rt, {}).get('name', rt)
                     cursor.execute("""
                         INSERT INTO room_type (code, description)
@@ -276,76 +296,99 @@ class DatabaseLoader():
                         VALUES (?, ?);
                     """, (rt, rt_name))
                     room_type_id = cursor.fetchone()[0]
-                else:
-                    room_type_id = row[0]
+                    room_type_cache[rt] = room_type_id
 
-                # Now insert the property_rooms record (use hotel.id, not lastrowid)
-                cursor.execute("""
-                    INSERT INTO property_rooms (property_id, room_type_id, count, price, resort_fee)
-                    VALUES (?, ?, ?, ?, ?);
-                """, (
+                property_rooms_values.append((
                     hotel.id,
                     room_type_id,
                     room_info.count,
                     room_info.price,
                     hotel.resort_fee
                 ))
+
+        # Batch insert property_rooms
+        if property_rooms_values:
+            cursor.executemany("""
+                INSERT INTO property_rooms (property_id, room_type_id, count, price, resort_fee)
+                VALUES (?, ?, ?, ?, ?);
+            """, property_rooms_values)
+        print(f"Inserted {len(property_rooms_values)} property-room relationships")
+
         cursor.connection.commit()
         self.set_identity_insert("property", False)
 
-        # Now, load customers
-        self.set_identity_insert("customer", True)        
-        cust: Customer
-        for cust in tqdm.tqdm(state['customers'], desc="Loading customers"):
-            cursor.execute("""
-                INSERT INTO customer (id, first_name, last_name, email, phone, address, city, state, zip)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-            """, (
-                cust.id,
-                cust.fname,
-                cust.lname,
-                cust.email,
-                cust.phone,
-                cust.street,
-                cust.city,
-                cust.state,
-                cust.zip
-            ))
+        # Now, load customers - batch insert with progress
+        self.set_identity_insert("customer", True)
+
+        # Collect all customer values
+        customer_values = [
+            (cust.id, cust.fname, cust.lname, cust.email, cust.phone,
+             cust.street, cust.city, cust.state, cust.zip)
+            for cust in state['customers']
+        ]
+
+        # Batch insert customers in chunks
+        if customer_values:
+            count = chunked_executemany(
+                cursor,
+                """INSERT INTO customer (id, first_name, last_name, email, phone, address, city, state, zip)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);""",
+                customer_values,
+                chunk_size=10000,
+                desc="Loading customers"
+            )
+            print(f"Inserted {count} customers")
+
         cursor.connection.commit()
         self.set_identity_insert("customer", False)
 
-        # Lets now load the events (events are still dicts, not dataclasses)
-        for event in tqdm.tqdm(state['events'], desc="Loading events"):
+        # Lets now load the events - batch insert with progress
+        print("Preparing event data...")
+        event_values = []
+        for event in state['events']:
             if event['event'] == 'checkin':
                 event_code = 'checkin'
                 event_date = event['checkin_date']
             else:
                 event_code = 'checkout'
                 event_date = event['checkout_date']
-            cursor.execute("""
-                INSERT INTO event (customer_id, event_code, property_id, event_date)
-                VALUES (?, ?, ?, ?);
-            """, (
+            event_values.append((
                 event['customer_id'],
                 event_code,
                 event['property_id'],
                 event_date
             ))
+
+        # Batch insert events in chunks
+        if event_values:
+            count = chunked_executemany(
+                cursor,
+                """INSERT INTO event (customer_id, event_code, property_id, event_date)
+                   VALUES (?, ?, ?, ?);""",
+                event_values,
+                chunk_size=50000,
+                desc="Loading events"
+            )
+            print(f"Inserted {count} events")
+
         cursor.connection.commit()
 
-        # And finally the transactions
-        transaction: Transaction
-        for transaction in tqdm.tqdm(state['transactions'], desc="Loading transactions"):
+        # And finally the transactions - batch insert everything
+        print("Preparing transaction data...")
+        self.set_identity_insert("transact", True)
+
+        # Collect all transaction values
+        transaction_values = []
+        all_line_items = []
+
+        for transaction in state['transactions']:
             # Parse payment method (e.g., "Visa xxxx-1234" -> method="Visa", stub="xxxx-1234")
             payment_parts = transaction.payment.method.split(' ', 1)
             payment_method = payment_parts[0]
             payment_card_stub = payment_parts[1] if len(payment_parts) > 1 else None
 
-            cursor.execute("""
-                INSERT INTO transact (transaction_date, customer_id, hotel_id, amount, payment_method, payment_card_stub)
-                OUTPUT INSERTED.id
-                VALUES (?, ?, ?, ?, ?, ?);
-            """, (
+            transaction_values.append((
+                transaction.id,
                 transaction.check_out_date,
                 transaction.customer_id,
                 transaction.hotel_id,
@@ -353,18 +396,44 @@ class DatabaseLoader():
                 payment_method,
                 payment_card_stub
             ))
-            transaction_id = cursor.fetchone()[0]
 
-            for line in transaction.line_items:
-                cursor.execute("""
-                    INSERT INTO transaction_line (transaction_id, description, amount_per, quantity)
-                    VALUES (?, ?, ?, ?);
-                """, (
-                    transaction_id,
-                    line.description,
-                    line.amount_per,
-                    line.quantity
-                ))
+            # Collect line items with their transaction_id for batch insert later
+            if transaction.line_items:
+                for line in transaction.line_items:
+                    all_line_items.append((
+                        transaction.id,
+                        line.description,
+                        line.amount_per,
+                        line.quantity
+                    ))
+
+        # Batch insert all transactions
+        if transaction_values:
+            count = chunked_executemany(
+                cursor,
+                """INSERT INTO transact (id, transaction_date, customer_id, hotel_id, amount, payment_method, payment_card_stub)
+                   VALUES (?, ?, ?, ?, ?, ?, ?);""",
+                transaction_values,
+                chunk_size=50000,
+                desc="Loading transactions"
+            )
+            print(f"Inserted {count} transactions")
+
+        cursor.connection.commit()
+        self.set_identity_insert("transact", False)
+
+        # Now batch insert ALL transaction line items at once
+        if all_line_items:
+            count = chunked_executemany(
+                cursor,
+                """INSERT INTO transaction_line (transaction_id, description, amount_per, quantity)
+                   VALUES (?, ?, ?, ?);""",
+                all_line_items,
+                chunk_size=50000,
+                desc="Loading transaction lines"
+            )
+            print(f"Inserted {count} transaction line items")
+
         cursor.connection.commit()
 
         print("Data load completed!")
