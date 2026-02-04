@@ -1,12 +1,24 @@
-import mssql_python as mssql
+import pyodbc
 import tqdm
 
 from xl9045qi.hotelgen import data
 from xl9045qi.hotelgen.models import Hotel, Customer, Transaction
 
+# Verify pyodbc is available
+try:
+    pyodbc.version
+except AttributeError:
+    raise ImportError(
+        "pyodbc is not properly installed. Install with: uv add pyodbc"
+    )
+
 
 def chunked_executemany(cursor, query, values, chunk_size=10000, desc="Inserting"):
-    """Execute a query with many values in chunks, showing progress."""
+    """Execute a query with many values in chunks, showing progress.
+
+    NOTE: With fast_executemany enabled, 10K chunks provide good balance of speed and memory.
+    Commits are handled by the caller for better performance.
+    """
     total = len(values)
     for i in tqdm.tqdm(range(0, total, chunk_size), desc=desc, unit="chunk"):
         chunk = values[i:i + chunk_size]
@@ -162,25 +174,34 @@ class DatabaseLoader():
 
     def connect(self) -> bool:
         # Try to connect first
-        print("Connecting to the database...",end="",flush=True)
+        print("Connecting to the database...", end="", flush=True)
+
+        # Detect ODBC driver
+        driver = self._detect_odbc_driver()
+        if driver is None:
+            print("failed.")
+            print("ERROR: No SQL Server ODBC driver found.")
+            print("       Please install ODBC Driver 18 or 17 for SQL Server.")
+            print("       Ubuntu/Debian: sudo apt-get install msodbcsql18")
+            print("       RHEL/CentOS: sudo yum install msodbcsql18")
+            print("       See: https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server")
+            print()
+            return False
 
         try:
-            conn = mssql.connect(
-                server=self.job["database"]["host"],
-                uid=self.job["database"]["username"],
-                pwd=self.job["database"]["password"],
-                database=self.job["database"]["dbname"],
-                encrypt="yes",
-                trust_server_certificate="yes"
-            )
+            connection_string = self._build_connection_string(driver)
+            conn = pyodbc.connect(connection_string)
+            conn.autocommit = False  # Ensure autocommit is disabled for performance
         except Exception as e:
             print("failed.")
             print("ERROR: Could not connect to the database.")
+            print(f"       Driver used: {driver}")
             print("       " + str(e))
             print()
             return False
 
         print("OK.")
+        print(f"  Using driver: {driver}")
 
         self._conn = conn
 
@@ -210,6 +231,86 @@ class DatabaseLoader():
     def __init__(self, job: dict):
         self.job = job
 
+    def _detect_odbc_driver(self):
+        """Detect available SQL Server ODBC driver.
+
+        Returns:
+            str: Driver name string (e.g., "ODBC Driver 18 for SQL Server")
+            None: If no driver found
+        """
+        import subprocess
+
+        try:
+            # List installed ODBC drivers using odbcinst
+            result = subprocess.run(['odbcinst', '-q', '-d'],
+                                  capture_output=True, text=True, timeout=5)
+            drivers = result.stdout
+
+            # Check for Driver 18 first (preferred)
+            if 'ODBC Driver 18 for SQL Server' in drivers:
+                return 'ODBC Driver 18 for SQL Server'
+            # Fall back to Driver 17
+            elif 'ODBC Driver 17 for SQL Server' in drivers:
+                return 'ODBC Driver 17 for SQL Server'
+            else:
+                return None
+        except (subprocess.TimeoutExpired, FileNotFoundError, Exception):
+            # If odbcinst not available, try pyodbc.drivers()
+            try:
+                drivers = pyodbc.drivers()
+                for driver in drivers:
+                    if 'SQL Server' in driver and '18' in driver:
+                        return driver
+                    elif 'SQL Server' in driver and '17' in driver:
+                        return driver
+                return None
+            except:
+                return None
+
+    def _build_connection_string(self, driver):
+        """Build ODBC connection string with specified driver."""
+        return (
+            f"DRIVER={{{driver}}};"
+            f"SERVER={self.job['database']['host']};"
+            f"DATABASE={self.job['database']['dbname']};"
+            f"UID={self.job['database']['username']};"
+            f"PWD={self.job['database']['password']};"
+            f"Encrypt=yes;"
+            f"TrustServerCertificate=yes"
+        )
+
+    def _disable_fk_constraints(self):
+        """Disable all foreign key constraints for faster bulk loads."""
+        cursor = self._conn.cursor()
+        cursor.execute("""
+            SELECT
+                QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id)) + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) AS table_name,
+                QUOTENAME(name) AS constraint_name
+            FROM sys.foreign_keys
+        """)
+        fk_rows = cursor.fetchall()
+        for row in fk_rows:
+            table_name = row[0]
+            constraint_name = row[1]
+            cursor.execute(f"ALTER TABLE {table_name} NOCHECK CONSTRAINT {constraint_name}")
+        self._conn.commit()
+
+    def _enable_fk_constraints(self):
+        """Re-enable and validate all foreign key constraints after bulk loads."""
+        cursor = self._conn.cursor()
+        cursor.execute("""
+            SELECT
+                QUOTENAME(OBJECT_SCHEMA_NAME(parent_object_id)) + '.' + QUOTENAME(OBJECT_NAME(parent_object_id)) AS table_name,
+                QUOTENAME(name) AS constraint_name
+            FROM sys.foreign_keys
+        """)
+        fk_rows = cursor.fetchall()
+        for row in fk_rows:
+            table_name = row[0]
+            constraint_name = row[1]
+            cursor.execute(f"ALTER TABLE {table_name} WITH CHECK CHECK CONSTRAINT {constraint_name}")
+        self._conn.commit()
+
     def make_schema(self):
         for table, columns in SCHEMA.items():
             column_defs = []
@@ -237,7 +338,7 @@ class DatabaseLoader():
                 cursor.execute(f"SET IDENTITY_INSERT {table} OFF;")
             cursor.connection.commit()
             return True
-        except mssql.exceptions.ProgrammingError as e:
+        except pyodbc.ProgrammingError as e:
             return False
 
     def load_data(self, state: dict):
@@ -245,6 +346,11 @@ class DatabaseLoader():
         # Ok, let's do this.
 
         cursor = self._conn.cursor()
+        cursor.fast_executemany = True  # Enable fast bulk inserts
+
+        # Disable FK constraints for faster bulk loads
+        print("Disabling foreign key constraints...")
+        self._disable_fk_constraints()
 
         # Load room types first - batch insert
         print("Loading room types...")
@@ -366,7 +472,7 @@ class DatabaseLoader():
                 """INSERT INTO event (customer_id, event_code, property_id, event_date)
                    VALUES (?, ?, ?, ?);""",
                 event_values,
-                chunk_size=50000,
+                chunk_size=10000,
                 desc="Loading events"
             )
             print(f"Inserted {count} events")
@@ -414,7 +520,7 @@ class DatabaseLoader():
                 """INSERT INTO transact (id, transaction_date, customer_id, hotel_id, amount, payment_method, payment_card_stub)
                    VALUES (?, ?, ?, ?, ?, ?, ?);""",
                 transaction_values,
-                chunk_size=50000,
+                chunk_size=10000,
                 desc="Loading transactions"
             )
             print(f"Inserted {count} transactions")
@@ -429,11 +535,15 @@ class DatabaseLoader():
                 """INSERT INTO transaction_line (transaction_id, description, amount_per, quantity)
                    VALUES (?, ?, ?, ?);""",
                 all_line_items,
-                chunk_size=50000,
+                chunk_size=10000,
                 desc="Loading transaction lines"
             )
             print(f"Inserted {count} transaction line items")
 
         cursor.connection.commit()
+
+        # Re-enable FK constraints and validate them
+        print("Re-enabling foreign key constraints...")
+        self._enable_fk_constraints()
 
         print("Data load completed!")
