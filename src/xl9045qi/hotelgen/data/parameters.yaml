@@ -699,8 +699,8 @@ hotel_types:
           mean: 0.1
           sd: 0.03
         ps:
-          mean: 0.02
-          sd: 0.01
+          mean: 0.025
+          sd: 0.005
 
 room_types:
   1kn:
