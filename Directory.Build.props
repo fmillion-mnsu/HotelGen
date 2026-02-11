@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <DefaultItemExcludes>*</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <!-- This doesn't directly set a default project for dotnet run, 
+       but helps with other build scenarios -->
+</Project>
