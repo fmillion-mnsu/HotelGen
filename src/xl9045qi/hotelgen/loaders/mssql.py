@@ -118,7 +118,7 @@ SCHEMA = {
     }
 }
 
-class DatabaseLoader():
+class MssqlDatabaseLoader():
 
     def drop_all_tables(self):
         """Drop all user tables, handling foreign key constraints properly."""
@@ -209,6 +209,10 @@ class DatabaseLoader():
 
     def __init__(self, job: dict):
         self.job = job
+
+    def check_should_run(self, state: dict):
+        
+        return state.get("load_state",{}).get("mssql",0) == 0
 
     def make_schema(self):
         for table, columns in SCHEMA.items():
@@ -437,3 +441,7 @@ class DatabaseLoader():
         cursor.connection.commit()
 
         print("Data load completed!")
+
+        # Set load_state.mssql to 1.  Create any keys that don't yet exist.
+        state['load_state'] = state.get('load_state', {})
+        state['load_state']['mssql'] = 1

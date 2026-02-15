@@ -4,11 +4,10 @@ import argparse
 import os
 import os.path
 
-import tqdm
 from yaml import safe_load
 
 import xl9045qi.hotelgen.simulation as sim
-from xl9045qi.hotelgen.loaders import mssql
+import xl9045qi.hotelgen.loaders as ld
 
 def main():
 
@@ -32,22 +31,6 @@ def main():
     output_path = os.path.abspath(args.output)
     print("Output will be written to: " + output_path)
 
-    if not args.no_database:
-        db = mssql.DatabaseLoader(job)
-        try:
-            db.connect()
-            if args.drop:
-                print("Dropping existing tables...")
-                db.drop_all_tables()
-            print("Creating database tables...")
-            db.make_schema()
-
-        except Exception as e:
-            print("ERROR: Could not initialize database.")
-            print("To generate data without loading to a database, use --no-database.")
-            print(str(e))
-            exit(1)
-
     if args.input is not None:
         input_path = os.path.abspath(args.input)
         print("Resuming from input file: " + input_path)
@@ -65,8 +48,6 @@ def main():
         #generator.export(f"{counter:02d}.pkl")
         counter += 1
 
-
-
     print("Writing output to " + output_path)
     generator.export(output_path)
 
@@ -75,10 +56,29 @@ def main():
         print(f"Output has been written to {output_path}.")
         print("You can import this into your database by executing:\n")
         print(f"  hotelgen -i {output_path}\n")
-
+      
     else:
         print("Loading data into database...")
-        db.load_data(generator.state)
+
+        for loader_class in ld.LOADERS:
+            db = loader_class(job)
+            try:
+                print(f"Database {db.__class__.__name__}:")
+                db.connect()
+                if args.drop:
+                    print("  Dropping existing tables...")
+                    db.drop_all_tables()
+                print("  Creating database tables...")
+                db.make_schema()
+
+            except Exception as e:
+                print("ERROR: Could not initialize database.")
+                print("To generate data without loading to a database, use --no-database.")
+                print(str(e))
+                exit(1)
+            
+            print("  Loading data...")
+            db.load_data(generator.state)
 
     print("Exiting program.")
     os._exit(0)
