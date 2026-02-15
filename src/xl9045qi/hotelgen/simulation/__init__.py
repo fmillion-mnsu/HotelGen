@@ -3,13 +3,13 @@ import pickle
 
 from xl9045qi.hotelgen.generators.transaction import generate_transaction
 
-from . import phase0, phase1, phase2, phase3
+from . import phase0, phase1, phase2, phase3, phase4
 
 from xl9045qi.hotelgen import data
 
 from .day import get_datetime_by_day_num, process_day
 
-PRE_PHASES = [phase0.phase0, phase1.phase1, phase2.phase2, phase3.phase3]
+PHASES = [phase0.phase0, phase1.phase1, phase2.phase2, phase3.phase3, phase4.phase4]
 
 class HGSimulationState:
 

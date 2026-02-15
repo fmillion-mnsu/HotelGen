@@ -58,17 +58,14 @@ def main():
         generator = sim.HGSimulationState(job)
 
     counter = 0
-    for phase in sim.PRE_PHASES:
+    for phase in sim.PHASES:
         print()
         print(f"=== Running Phase {counter} ===")
         phase(generator)
         #generator.export(f"{counter:02d}.pkl")
         counter += 1
 
-    for n in tqdm.tqdm(range(generator.state['days_left']),desc="Running Simulation"):
-        sim.process_day(generator)
-        generator.state['days_left'] -= 1
-    generator.state['last_phase'] = 4
+
 
     print("Writing output to " + output_path)
     generator.export(output_path)
