@@ -56,7 +56,7 @@ def main():
             dv = generator.state["data_version"]
         
         if dv < 1:
-            print("ERROR: Input file is too old. Please use migration tool.")
+            print("ERROR: Input file is too old (data version 0). Please use migration tool.")
             exit(1)
 
         generator.job = job # Replace job in case ours is newer
@@ -75,14 +75,6 @@ def main():
                 generator.export(os.path.join(output_dir, ckpt_name))
         counter += 1
 
-    from xl9045qi.hotelgen.models import GiftShop, Product
-    adapter = TypeAdapter(list[GiftShop])
-    json_output = adapter.dump_json(generator.state['giftshops'], indent=2).decode()
-    print(json_output)
-    adapter = TypeAdapter(list[Product])
-    json_output = adapter.dump_json(generator.state['products'], indent=2).decode()
-    print(json_output)
-    exit(1)
     print("Writing output to " + output_path)
     generator.export(output_path)
 

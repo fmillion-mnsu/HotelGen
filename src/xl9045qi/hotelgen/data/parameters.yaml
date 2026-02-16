@@ -821,7 +821,12 @@ customer_archetypes:
       '4-7': 0.1
     min_gap_days: 30
     incidental_probability: 0.3  # Low
-
+    gift_probability: 0.4
+    gift_category_probabilities:
+      souvenir: 0.2
+      food: 0.2
+      supply: 0.15
+  
   regular_leisure:
     percentage: 0.15
     stays_per_year_mean: 3
@@ -834,6 +839,11 @@ customer_archetypes:
       '8-14': 0.05
     min_gap_days: 14
     incidental_probability: 0.5  # Medium
+    gift_probability: 0.6
+    gift_category_probabilities:
+      souvenir: 0.25
+      food: 0.2
+      supply: 0.1
 
   business:
     percentage: 0.10
@@ -846,6 +856,11 @@ customer_archetypes:
       '4-7': 0.05
     min_gap_days: 3
     incidental_probability: 0.6  # Medium-High
+    gift_probability: 0.25
+    gift_category_probabilities:
+      souvenir: 0.1
+      food: 0.45
+      supply: 0.25
 
   corporate:
     percentage: 0.04
@@ -857,6 +872,11 @@ customer_archetypes:
       '3': 0.1
     min_gap_days: 1
     incidental_probability: 0.8  # High
+    gift_probability: 0.1
+    gift_category_probabilities:
+      souvenir: 0.1
+      food: 0.35
+      supply: 0.3
 
   road_warrior:
     percentage: 0.01
@@ -868,6 +888,11 @@ customer_archetypes:
       '3': 0.05
     min_gap_days: 1
     incidental_probability: 0.4  # Low-Medium (efficient travelers)
+    gift_probability: 0.25
+    gift_category_probabilities:
+      souvenir: 0.05
+      food: 0.35
+      supply: 0.5
 
 customer_email_domains:
   - "gmail.com"
@@ -1113,7 +1138,11 @@ gifts:
     - 79
     - 89
     - 99
-
+  anonymous_gift_probabilities:
+    souvenir: 0.15
+    food: 0.4
+    supply: 0.3
+  
 misc:
   hotel_name_templates:
     - '{adj} {noun} {type}'

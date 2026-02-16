@@ -21,8 +21,8 @@ def phase5(inst: HGSimulationState) -> bool:
     # Get the number of dats in the generation range, and find the midpoint
     # as number of days from the start
     days_in_range = \
-        (datetime.datetime.strptime(inst.job['generation']['date_range']['end'], "%Y-%m-%d") - \
-        datetime.datetime.strptime(inst.job['generation']['date_range']['start'], "%Y-%m-%d")).days
+        (datetime.datetime.strptime(inst.job['generation']['dates']['end'], "%Y-%m-%d") - \
+        datetime.datetime.strptime(inst.job['generation']['dates']['start'], "%Y-%m-%d")).days
     midpoint_days = int(days_in_range / 2)
 
     # Determine which hotels get gift shops
@@ -65,11 +65,12 @@ def phase5(inst: HGSimulationState) -> bool:
         # All stores should be opened by halfway through the date range.
         day_curve = (random.random() * 0.5) ** 3
         days_since_start = day_curve * midpoint_days
-        start_date = datetime.datetime.strptime(inst.job['generation']['date_range']['start'], "%Y-%m-%d") + datetime.timedelta(days=days_since_start)
+        start_date = datetime.datetime.strptime(inst.job['generation']['dates']['start'], "%Y-%m-%d") + datetime.timedelta(days=days_since_start)
         this_gs[0].date_opened = start_date
         inst.state['giftshops'].append(this_gs[0])
         inst.state['products'].extend(this_gs[1])
     
+    print(f"Generated {len(inst.state['giftshops'])} gift shops and {len(inst.state['products'])} products.")
     inst.state['last_phase'] = 5
 
     return True

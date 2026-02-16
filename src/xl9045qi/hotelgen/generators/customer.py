@@ -80,3 +80,53 @@ def generate_customer(inst: 'HGSimulationState', customer_type: str, state: str 
         phone=generate_us_phone(),
         type=customer_type,
     )
+
+
+def generate_retail_customer(inst: 'HGSimulationState') -> Customer:
+    """Generate a single random retail customer.
+
+    Returns:
+        RetailCustomer: A RetailCustomer dataclass instance.
+    """
+
+    ### --- CUSTOMER NAME, LOCATION, CONTACT INFO --- ###
+
+    # Get cached lists from inst.state['cache']
+    cache = inst.state['cache']
+
+    # Determine how we should select city/state/zip (use cached list)
+    if state:
+        try:
+            zc = r.choice(cache['zipcode_lists_by_state'][state])
+            csz = (data.zipcodes[state][zc], state.upper(), zc)
+        except KeyError:
+            raise ValueError(f"Invalid state code: {state}")
+    else:
+        zc = r.choice(cache['zipcode_lists_by_state'][state])
+        csz = (data.zipcodes[state][zc], state.upper(), zc)
+
+    # Use pre-generated name pools instead of slow Faker calls
+    fname = get_first_name()
+    lname = get_last_name()
+    email_parts = {
+        "fname": fname,
+        "lname": lname,
+        "f_initial": fname[0],
+        "l_initial": lname[0],
+        "year": str(r.randrange(70, 2030)).zfill(2),
+        "domain": r.choice(cache['email_domains'])
+    }
+    # Email is one of the random Email addresses at the generated domain
+    email_fmt = r.choice(cache['email_templates'])
+    email = email_fmt.format(**email_parts).lower()
+
+    # Final response assembly
+    return Customer(
+        fname=fname,
+        lname=lname,
+        street=f"{generate_street_number()} {get_street_name()}",
+        city=csz[0],
+        state=csz[1],
+        zip=csz[2],
+        email=email
+    )
