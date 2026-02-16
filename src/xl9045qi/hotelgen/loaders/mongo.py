@@ -70,6 +70,9 @@ class MongoDatabaseLoader():
         print("Loading customers...")
         customers_by_id = state['cache'].get('retail_customers_by_id', {})
         customer_docs = [dataclasses.asdict(c) for c in customers_by_id.values()]
+        # Remove the "main_customer_id" field from all customer docs
+        for doc in customer_docs:
+            del doc['main_customer_id']
         if customer_docs:
             chunked_insert(self._db.customers, customer_docs, desc="Loading customers")
         print(f"  Inserted {len(customer_docs)} customers")
@@ -77,11 +80,13 @@ class MongoDatabaseLoader():
         # -- transactions (with embedded customer) --
         print("Loading transactions...")
         transaction_docs = []
-        for txn in state['retail_transactions']:
+        for i, txn in enumerate(state['retail_transactions']):
             doc = dataclasses.asdict(txn)
             # Embed the full customer document
             cust = customers_by_id.get(txn.customer_id)
             doc['customer'] = dataclasses.asdict(cust) if cust else None
+            del(doc['customer_id'])
+            doc['id'] = i
             transaction_docs.append(doc)
 
         if transaction_docs:

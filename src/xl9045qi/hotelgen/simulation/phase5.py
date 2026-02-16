@@ -117,6 +117,9 @@ def phase5(inst: HGSimulationState) -> bool:
 
     inst.state.setdefault("retail_transactions",[]).extend(transactions)
     print(f"Generated {len(transactions)} retail transactions.")
+
+    random.shuffle(inst.state['retail_transactions'])
+
     inst.state['last_phase'] = 5
 
     return True

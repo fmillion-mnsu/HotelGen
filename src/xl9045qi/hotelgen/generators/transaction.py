@@ -289,6 +289,8 @@ def generate_retail_transaction(self: 'HGSimulationState', store_id: int = None,
                 quantity=1
             ))
     
+    # Generate a timestamp from the date and a random time between 12PM and 11PM UTC (store as UTC)
+    timestamp = datetime.datetime.combine(date, datetime.time(random.randint(12, 23), random.randint(0, 59)))
     # Get the total of all line items taking qty into account
     total_paid = sum([x.amount_per * x.quantity for x in line_items])
     # All items not in "food" category are sales taxed
@@ -298,6 +300,7 @@ def generate_retail_transaction(self: 'HGSimulationState', store_id: int = None,
         store_id=store_id,
         total=total_paid,
         line_items=line_items,
+        timestamp=timestamp,
         payment=Payment(
             method=r.choice(data.misc['credit_card_names']) + " xxxx-" + str(r.randrange(10, 9999)).zfill(4),
             amount=total_paid,

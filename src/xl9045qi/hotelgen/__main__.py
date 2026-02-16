@@ -62,6 +62,9 @@ def main():
             exit(1)
 
         generator.job = job # Replace job in case ours is newer
+
+        print("Checkpoint loaded successfully.")
+ 
     else:
         print("Initializing generator...")
         generator = sim.HGSimulationState(job)
@@ -74,6 +77,7 @@ def main():
         if args.checkpoints:
             if success:
                 ckpt_name = os.path.splitext(os.path.basename(output_path))[0] + f"_p{counter:02d}.pkl"
+                print("Storing checkpoint " + ckpt_name)
                 generator.export(os.path.join(output_dir, ckpt_name))
         counter += 1
 

@@ -104,6 +104,7 @@ class RetailTransaction:
     line_items: list[LineItem]
     total: float
     payment: Payment
+    timestamp: datetime
     id: Optional[int] = None
 
 
