@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xl9045qi.hotelgen.simulation import HGSimulationState
 
-def phase0(inst: HGSimulationState):
+def phase0(inst: HGSimulationState) -> bool:
     """Initial phase of the hotel generation simulation.
 
     This phase sets up the initial parameters for hotel generation.
@@ -22,7 +22,7 @@ def phase0(inst: HGSimulationState):
 
     if inst.state.get("last_phase", -1) >= 0:
         print("[bold]Phase 0 already completed, skipping.")
-        return
+        return False
 
     # This is the bulk of the code that actually does the generation.
     print("[bold]Start Hotel Database Generation.")
@@ -56,3 +56,5 @@ def phase0(inst: HGSimulationState):
         "hotels": hotel_count,
         "motels": motel_count
     }
+
+    return True

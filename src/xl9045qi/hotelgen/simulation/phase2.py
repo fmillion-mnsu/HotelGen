@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xl9045qi.hotelgen.simulation import HGSimulationState
 
-def phase2(inst: HGSimulationState):
+def phase2(inst: HGSimulationState) -> bool:
     """Phase 2 of the hotel generation simulation.
 
     This phase generates customers for the hotels.
@@ -20,7 +20,7 @@ def phase2(inst: HGSimulationState):
 
     if inst.state.get("last_phase", -1) >= 2:
         print("[bold]Phase 2 already completed, skipping.")
-        return
+        return False
 
     from xl9045qi.hotelgen.generators.distribution import generate_state_distribution
     from xl9045qi.hotelgen.generators.customer import generate_customer, init_customer_cache
@@ -89,3 +89,5 @@ def phase2(inst: HGSimulationState):
     inst.state['last_phase'] = 2
     inst.state['gen_params']['total_rooms'] = total_room_count
     inst.state['gen_params']['total_customers'] = len(inst.state['customers'])
+
+    return True

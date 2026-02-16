@@ -2218,9 +2218,6 @@ Hot-Air Balloon
 Hot-Water Bottle
 Hotcake
 Hotdog
-Hotel
-Hotel Clerk
-Hotelkeeper
 Hotplate
 Hound Dog
 Hourglass
@@ -2828,8 +2825,6 @@ Mosquito
 Mosquito Bite
 Mosquito Net
 Moss
-Motel
-Motel Room
 Moth
 Mothball
 Mother
@@ -4010,7 +4005,6 @@ Ski Lift
 Ski Lodge
 Ski Mask
 Ski Pole
-Ski Resort
 Skies
 Skillet
 Skin

@@ -3,7 +3,7 @@ import pickle
 
 from xl9045qi.hotelgen.generators.transaction import generate_transaction
 
-from . import phase0, phase1, phase2, phase3, phase4
+from . import phase0, phase1, phase2, phase3, phase4, phase5
 
 from xl9045qi.hotelgen import data
 
@@ -19,7 +19,7 @@ PHASES = [
 ]
 
 class HGSimulationState:
-
+            
     def __init__(self, job):
         self.job = job
         # Store hotels here
@@ -29,6 +29,8 @@ class HGSimulationState:
         self.state['transactions'] = []
         self.state['events'] = []
         self.state['gen_params'] = {}
+        self.state['giftshops'] = []
+        self.state['products'] = []
         self.state['next_transaction_id'] = 1
 
         self.state['giftshops'] = []
@@ -59,6 +61,11 @@ class HGSimulationState:
             data = pickle.load(f)
             self.job = data.get("jobfile", {})
             self.state = data.get("state", {})
+        
+        if "products" not in self.state:
+            self.state["products"] = []
+        if "giftshops" not in self.state:
+            self.state["giftshops"] = []
 
     def checkin(self, customer_id: int, hotel_id: int, room_type: str, stay_length: int):
         """Check in a customer to a hotel for a specified stay length.

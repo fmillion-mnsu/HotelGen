@@ -9,6 +9,10 @@ from yaml import safe_load
 import xl9045qi.hotelgen.simulation as sim
 import xl9045qi.hotelgen.loaders as ld
 
+# Semaphore at exit is harmless
+import warnings
+warnings.filterwarnings("ignore", message="resource_tracker:")
+
 def main():
 
     print()
@@ -22,6 +26,7 @@ def main():
     parser.add_argument("--drop",action="store_true",help="Drop existing tables before creating new ones")
     parser.add_argument("-o","--output",type=str,default="hotelgen_output.pkl",help="Path to output pickle file")
     parser.add_argument("-i","--input",type=str,help="Path to input pickle file to resume from")
+    parser.add_argument("--checkpoints",action="store_true",help="Save checkpoints in the output directory after each phase")
     parser.add_argument("--no-database",action="store_true",help="Do not load data into the database; instead, only produce the output .pkl file")
     args = parser.parse_args()
 
@@ -30,12 +35,16 @@ def main():
 
     output_path = os.path.abspath(args.output)
     print("Output will be written to: " + output_path)
+    output_dir = os.path.dirname(output_path)
+    if args.checkpoints:
+        print("Checkpoints will be saved to: " + output_dir)
 
     if args.input is not None:
         input_path = os.path.abspath(args.input)
         print("Resuming from input file: " + input_path)
         generator = sim.HGSimulationState(job)
         generator.import_pkl(input_path)
+        generator.job = job # Replace job in case ours is newer
     else:
         print("Initializing generator...")
         generator = sim.HGSimulationState(job)
@@ -44,10 +53,17 @@ def main():
     for phase in sim.PHASES:
         print()
         print(f"=== Running Phase {counter} ===")
-        phase(generator)
-        #generator.export(f"{counter:02d}.pkl")
+        success = phase(generator)
+        if args.checkpoints:
+            if success:
+                ckpt_name = os.path.splitext(os.path.basename(output_path))[0] + f"_p{counter:02d}.pkl"
+                generator.export(os.path.join(output_dir, ckpt_name))
         counter += 1
 
+    import json
+    print(json.dumps(generator.state['giftshops'], indent=2))
+    print(json.dumps(generator.state['products'], indent=2))
+    exit(1)
     print("Writing output to " + output_path)
     generator.export(output_path)
 

@@ -12,13 +12,12 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
     giftshop_name = hotel.name
 
     # Sanitize
-    giftshop_name = re.sub('^[Tt]he ', '', giftshop_name)       # Remove "The" at the beginning
-    giftshop_name = re.sub(' at .+$', '', giftshop_name)        # Remove " at [location]" at the end
-
+    giftshop_name = re.sub('^[Tt]he | at |Hotel|Motel|Resort','',giftshop_name)
+    giftshop_name = giftshop_name.strip()
     property_base = giftshop_name
 
     # Create name
-    giftshop_name = random.choice(data.misc['giftshop_name_templates']).format(name=giftshop_name)
+    giftshop_name = random.choice(data.misc['giftshop_name_templates']).format(name=giftshop_name).strip()
 
     unit_no = random.randint(10,200)
     unit_name = random.choice(data.misc['unit_names'])
@@ -82,8 +81,8 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
             multiplier = rand(
                 data.hotel_types[hotel_class].get("price_multiplier",{}).get("mean", 1.0),
                 data.hotel_types[hotel_class].get("price_multiplier",{}).get("sd", 0.1),
-                min_value=1.0,
-                max_value=3.0
+                min_val=1.0,
+                max_val=3.0
             )
             price = rp(price * multiplier)
             if price < product.get("price",{}).get("min", 5.00):

@@ -195,7 +195,6 @@ def process_day(inst: HGSimulationState):
         if len(all_customers_in_grp) <= customer_counts[ct]:
             # Not enough customers, just use 20% of what's available
             customer_counts[ct] = int(round(len(all_customers_in_grp) * 0.2))
-
         # Now, select the customers
         customer_ids = r.sample(all_customers_in_grp, customer_counts[ct])
         customer_counts[ct] = customer_ids  # Replace count with list of IDs
