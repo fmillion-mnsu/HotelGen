@@ -1,9 +1,12 @@
 import datetime
+
+import tqdm
+from rich import print
+
 from xl9045qi.hotelgen import data
 from xl9045qi.hotelgen import log_scaled_value as lsv
 from xl9045qi.hotelgen import normalized_random_bounded as rand
 from xl9045qi.hotelgen.generators import generate_stay_length, r
-from rich import print
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -195,7 +198,6 @@ def process_day(inst: HGSimulationState):
         if len(all_customers_in_grp) <= customer_counts[ct]:
             # Not enough customers, just use 20% of what's available
             customer_counts[ct] = int(round(len(all_customers_in_grp) * 0.2))
-
         # Now, select the customers
         customer_ids = r.sample(all_customers_in_grp, customer_counts[ct])
         customer_counts[ct] = customer_ids  # Replace count with list of IDs
@@ -255,4 +257,15 @@ def process_day(inst: HGSimulationState):
 
     return
 
+def phase4(inst: HGSimulationState) -> bool:
 
+    if inst.state.get("last_phase", -1) >= 4:
+        print("[bold]Phase 4 already completed, skipping.")
+        return False
+
+    for n in tqdm.tqdm(range(inst.state['days_left']),desc="Running Simulation"):
+        process_day(inst)
+        inst.state['days_left'] -= 1
+    inst.state['last_phase'] = 4
+
+    return True

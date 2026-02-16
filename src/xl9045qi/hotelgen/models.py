@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from pydantic.dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
@@ -39,6 +39,18 @@ class Customer:
     phone: str  # 12 char max
     type: str  # customer archetype: 'rare_leisure', 'regular_leisure', 'business', 'corporate', 'road_warrior'
     id: Optional[int] = None
+
+    def ToRetailCustomer(self):
+        return RetailCustomer(
+            fname=self.fname,
+            lname=self.lname,
+            street=self.street,
+            city=self.city,
+            state=self.state,
+            zip=self.zip,
+            email=self.email,
+            main_customer_id=self.id
+        )
 
 @dataclass
 class Hotel:
@@ -82,4 +94,50 @@ class Transaction:
     line_items: list[LineItem]
     total: float
     payment: Payment
+    id: Optional[int] = None
+
+@dataclass
+class RetailTransaction:
+    """A financial transaction for a retail store."""
+    customer_id: Optional[int]
+    store_id: int
+    line_items: list[LineItem]
+    total: float
+    payment: Payment
+    timestamp: datetime
+    id: Optional[int] = None
+
+
+@dataclass
+class RetailCustomer:
+    """A customer record."""
+    fname: str
+    lname: str
+    street: str
+    city: str
+    state: str  # 2 char max
+    zip: str  # 10 char max
+    email: str
+    main_customer_id: Optional[int] = -1
+    id: Optional[int] = None
+
+@dataclass
+class GiftShop:
+    """A gift shop."""
+    name: str
+    street: str
+    city: str
+    state: str  # 2 char max
+    zip: str  # 10 char max
+    located_at: int
+    date_opened: Optional[datetime] = None
+    id: Optional[int] = None
+
+@dataclass
+class Product:
+    """A product sold in a gift shop."""
+    name: str
+    price: float
+    category: str
+    sold_at: int
     id: Optional[int] = None

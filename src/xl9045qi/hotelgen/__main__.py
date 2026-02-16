@@ -3,12 +3,18 @@
 import argparse
 import os
 import os.path
+import shutil
+import time
 
-import tqdm
+from pydantic import TypeAdapter
 from yaml import safe_load
 
 import xl9045qi.hotelgen.simulation as sim
-from xl9045qi.hotelgen.loaders import mssql
+import xl9045qi.hotelgen.loaders as ld
+
+# Semaphore at exit is harmless
+import warnings
+warnings.filterwarnings("ignore", message="resource_tracker:")
 
 def main():
 
@@ -23,7 +29,10 @@ def main():
     parser.add_argument("--drop",action="store_true",help="Drop existing tables before creating new ones")
     parser.add_argument("-o","--output",type=str,default="hotelgen_output.pkl",help="Path to output pickle file")
     parser.add_argument("-i","--input",type=str,help="Path to input pickle file to resume from")
+    parser.add_argument("--checkpoints",action="store_true",help="Save checkpoints in the output directory after each phase")
     parser.add_argument("--no-database",action="store_true",help="Do not load data into the database; instead, only produce the output .pkl file")
+    parser.add_argument("--db_assume_complete", type=str, metavar="DB", action="append", help="Assume the load for database DB is complete even if the state says otherwise (can be specified multiple times)")
+
     args = parser.parse_args()
 
     print("Reading job: " + args.JOBFILE)
@@ -31,47 +40,93 @@ def main():
 
     output_path = os.path.abspath(args.output)
     print("Output will be written to: " + output_path)
-
-    if not args.no_database:
-        db = mssql.DatabaseLoader(job)
-        try:
-            db.connect()
-            if args.drop:
-                print("Dropping existing tables...")
-                db.drop_all_tables()
-            print("Creating database tables...")
-            db.make_schema()
-
-        except Exception as e:
-            print("ERROR: Could not initialize database.")
-            print("To generate data without loading to a database, use --no-database.")
-            print(str(e))
-            exit(1)
+    output_dir = os.path.dirname(output_path)
+    if args.checkpoints:
+        print("Checkpoints will be saved to: " + output_dir)
 
     if args.input is not None:
         input_path = os.path.abspath(args.input)
         print("Resuming from input file: " + input_path)
         generator = sim.HGSimulationState(job)
-        generator.import_pkl(input_path)
+        try:
+            st = time.time()
+            generator.import_pkl(input_path)
+            et = time.time() - st
+        except Exception as e:
+            print("ERROR: Could not import from input file.")
+            print(str(e))
+            exit(1)
+        if "data_version" not in generator.state:
+            dv = 0
+        else:
+            dv = generator.state["data_version"]
+        
+        if dv < 1:
+            print("ERROR: Input file is too old (data version 0). Please use migration tool.")
+            exit(1)
+
+        generator.job = job # Replace job in case ours is newer
+
+        ckpt_size = os.path.getsize(input_path)
+        bps = ckpt_size / et
+        print(f"Checkpoint loaded successfully in {et:.2f} seconds.")
+        print(f"Checkpoint size: {ckpt_size / 1024 / 1024:.2f} MB")
+        print(f"Checkpoint load rate: {bps / 1024 / 1024:.2f} MB/s")
+ 
     else:
         print("Initializing generator...")
         generator = sim.HGSimulationState(job)
 
     counter = 0
-    for phase in sim.PRE_PHASES:
+    for phase in sim.PHASES:
         print()
         print(f"=== Running Phase {counter} ===")
-        phase(generator)
-        #generator.export(f"{counter:02d}.pkl")
+        success = phase(generator)
+        if args.checkpoints:
+            if success:
+                ckpt_name = os.path.splitext(os.path.basename(output_path))[0] + f"_p{counter:02d}.pkl"
+                print("Storing checkpoint " + ckpt_name)
+                ckpt_path = os.path.join(output_dir, ckpt_name)
+                st = time.time()
+                generator.export(ckpt_path)
+                et = time.time() - st
+                ckpt_size = os.path.getsize(ckpt_path)
+                bps = ckpt_size / et
+                print(f"Checkpoint stored successfully in {et:.2f} seconds.")
+                print(f"Checkpoint size: {ckpt_size / 1024 / 1024:.2f} MB")
+                print(f"Checkpoint save rate: {bps / 1024 / 1024:.2f} MB/s")
         counter += 1
 
-    for n in tqdm.tqdm(range(generator.state['days_left']),desc="Running Simulation"):
-        sim.process_day(generator)
-        generator.state['days_left'] -= 1
-    generator.state['last_phase'] = 4
-
     print("Writing output to " + output_path)
-    generator.export(output_path)
+
+    if not args.checkpoints:
+        st = time.time()
+        generator.export(output_path)
+        et = time.time() - st
+        output_size = os.path.getsize(output_path)
+        bps = output_size / et
+        print(f"Output written successfully in {et:.2f} seconds.")
+        print(f"Output size: {output_size / 1024 / 1024:.2f} MB")
+        print(f"Output save rate: {bps / 1024 / 1024:.2f} MB/s")
+    else:
+        # copy the last checkpoint
+        counter -= 1
+        st = time.time()
+        ckpt_name = os.path.splitext(os.path.basename(output_path))[0] + f"_p{counter:02d}.pkl"
+        ckpt_path = os.path.join(output_dir, ckpt_name)
+        shutil.copyfile(ckpt_path, output_path)
+        et = time.time() - st
+        output_size = os.path.getsize(output_path)
+        bps = output_size / et
+        print(f"Output written successfully in {et:.2f} seconds.")
+        print(f"Output size: {output_size / 1024 / 1024:.2f} MB")
+        print(f"Output save rate: {bps / 1024 / 1024:.2f} MB/s")
+        print("")
+
+    if args.db_assume_complete:
+        for db_name in args.db_assume_complete:
+            print(f"WARNING: marking {db_name} load as completed")
+            generator.state.setdefault('load_state', {})[db_name] = 1
 
     if args.no_database:
         print("Skipping database load.")
@@ -81,7 +136,29 @@ def main():
 
     else:
         print("Loading data into database...")
-        db.load_data(generator.state)
+
+        for loader_class in ld.LOADERS:
+            db = loader_class(job)
+            if db.check_should_run(generator.state):
+                try:
+                    print(f"Database {db.__class__.__name__}:")
+                    db.connect()
+                    if args.drop:
+                        print("  Dropping existing tables...")
+                    db.drop_all_tables()
+                    print("  Creating database tables...")
+                    db.make_schema()
+
+                except Exception as e:
+                    print("ERROR: Could not initialize database.")
+                    print("To generate data without loading to a database, use --no-database.")
+                    print(str(e))
+                    exit(1)
+                
+                print("  Loading data...")
+                db.load_data(generator.state)
+            else:
+                print(f"Database {db.__class__.__name__} already loaded.")
 
     print("Exiting program.")
     os._exit(0)

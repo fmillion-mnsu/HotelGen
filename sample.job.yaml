@@ -1,0 +1,47 @@
+# Sample HotelGen Job Configuration File
+# This file defines the parameters for generating a simulated hotel chain dataset
+
+job:
+  # Database connection settings
+  database:
+    mssql:
+      host: "localhost"              # Database server hostname or IP
+      username: "sa"      # Database username
+      password: "your_password_here" # Database password
+      dbname: "hotelgen"          # Database name to use
+    mongo:
+      url: "mongodb://admin:Academic2026U00!@192.168.32.4:20010/hotelgen?tls=true&tlsInsecure=true&authSource=admin"
+      
+  # Generation parameters
+  generation:
+    # Date range for simulation
+    dates:
+      start: "2024-01-01"  # Start date (YYYY-MM-DD) - MUST use correct format!
+      end: "2024-06-30"    # End date (YYYY-MM-DD)
+
+    # Hotel generation settings
+    hotels:
+      count: 40       # Mean number of properties to generate
+      sd: 5           # Standard deviation for property count
+
+    # Property type distribution ratios (should sum to 1.0)
+    ratios:
+      resorts: 0.10   # 10% of properties are resorts
+      hotels: 0.60    # 60% of properties are hotels
+      motels: 0.30    # 30% of properties are motels
+
+    giftshops:
+      resorts: 0.95   # 95% chance of resort getting gift shop
+      hotels: 0.4     # 40% chance of hotel getting gift shop
+      motels: 0.0     # No motel giftshops for now
+
+    # Customer generation settings
+    customers:
+      count: 100000   # Mean number of customers to generate
+      sd: 5000        # Standard deviation for customer count
+      state_sd: 0.1   # Standard deviation for state distribution
+
+    # Simulation occupancy settings
+    ramp_up_days: 45           # Days to ramp up to target occupancy
+    target_occupancy: 0.30     # Target occupancy rate (30%)
+    target_occupancy_sd: 0.05  # Standard deviation for occupancy variance

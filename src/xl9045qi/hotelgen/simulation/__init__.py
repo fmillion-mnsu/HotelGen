@@ -3,16 +3,23 @@ import pickle
 
 from xl9045qi.hotelgen.generators.transaction import generate_transaction
 
-from . import phase0, phase1, phase2, phase3
+from . import phase0, phase1, phase2, phase3, phase4, phase5
 
 from xl9045qi.hotelgen import data
 
-from .day import get_datetime_by_day_num, process_day
+from .phase4 import get_datetime_by_day_num, process_day
 
-PRE_PHASES = [phase0.phase0, phase1.phase1, phase2.phase2, phase3.phase3]
+PHASES = [
+    phase0.phase0,
+    phase1.phase1,
+    phase2.phase2,
+    phase3.phase3,
+    phase4.phase4,
+    phase5.phase5
+]
 
 class HGSimulationState:
-
+            
     def __init__(self, job):
         self.job = job
         # Store hotels here
@@ -22,7 +29,13 @@ class HGSimulationState:
         self.state['transactions'] = []
         self.state['events'] = []
         self.state['gen_params'] = {}
+        self.state['giftshops'] = []
+        self.state['products'] = []
         self.state['next_transaction_id'] = 1
+
+        self.state['giftshops'] = []
+        
+        self.state['data_version'] = 1 # CHANGE THIS IF YOU CHANGE THE DATA STRUCTURES!
 
     def export(self, path: str):
         """Export the generated hotel data to a specified path as a pickle file.
@@ -50,6 +63,11 @@ class HGSimulationState:
             data = pickle.load(f)
             self.job = data.get("jobfile", {})
             self.state = data.get("state", {})
+        
+        if "products" not in self.state:
+            self.state["products"] = []
+        if "giftshops" not in self.state:
+            self.state["giftshops"] = []
 
     def checkin(self, customer_id: int, hotel_id: int, room_type: str, stay_length: int):
         """Check in a customer to a hotel for a specified stay length.

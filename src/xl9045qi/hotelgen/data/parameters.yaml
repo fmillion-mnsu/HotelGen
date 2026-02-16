@@ -167,78 +167,91 @@ state_population_ratios: # based on 2023 Population numbers
 state_data:
   # Premium markets (>1.0)
   HI:             # Hawaii - tourism premium
+    full_name: "Hawaii"
     price_multiplier:
       mean: 1.45
       sd: 0.10
     sales_tax: 0.04
     luxury_tax: 0.1425
   NY:             # New York - urban premium
+    full_name: "New York"
     price_multiplier:
       mean: 1.25
       sd: 0.12
     sales_tax: 0.04
     luxury_tax: 0.125
   MA:             # Massachusetts - Boston market
+    full_name: "Massachusetts"
     price_multiplier:
       mean: 1.15
       sd: 0.08
     sales_tax: 0
     luxury_tax: 0.117
   DC:             # DC - government/tourism
+    full_name: "Washington D.C."
     price_multiplier:
       mean: 1.10
       sd: 0.08
     sales_tax: 0
     luxury_tax: 0.1495
   NJ:             # New Jersey - NYC spillover
+    full_name: "New Jersey"
     price_multiplier:
       mean: 1.05
       sd: 0.08
     sales_tax: 0
     luxury_tax: 0.14
   CT:             # Connecticut
+    full_name: "Connecticut"
     price_multiplier:
       mean: 1.05
       sd: 0.07
     sales_tax: 0
     luxury_tax: 0.15
   WA:             # Washington - Seattle market
+    full_name: "Washington"
     price_multiplier:
       mean: 1.00
       sd: 0.08
     sales_tax: 0.065
     luxury_tax: 0.125
   CO:             # Colorado - ski/tourism
+    full_name: "Colorado"
     price_multiplier:
       mean: 1.00
       sd: 0.10
     sales_tax: 0.029
     luxury_tax: 0.125
   FL:             # Florida - high volume, variable
+    full_name: "Florida"
     price_multiplier:
       mean: 0.95
       sd: 0.12
     sales_tax: 0.06
     luxury_tax: 0.12
   AZ:             # Arizona - Scottsdale vs rural
+    full_name: "Arizona"
     price_multiplier:
       mean: 0.95
       sd: 0.10
     sales_tax: 0.065
     luxury_tax: 0.115
   NV:             # Nevada - Vegas skews this (handled by tourism multiplier)
+    full_name: "Nevada"
     price_multiplier:
       mean: 0.90
       sd: 0.15
     sales_tax: 0.0685
     luxury_tax: 0.135
   IL:             # Illinois - Chicago market
+    full_name: "Illinois"
     price_multiplier:
       mean: 0.90
       sd: 0.08
     sales_tax: 0.0625
     luxury_tax: 0.13
   CA:             # California - baseline
+    full_name: "California"
     price_multiplier:
       mean: 1.00
       sd: 0.10
@@ -247,102 +260,119 @@ state_data:
 
   # Mid-range markets (0.75-0.90)
   OR:
+    full_name: "Oregon"
     price_multiplier:
       mean: 0.88
       sd: 0.07
     sales_tax: 0
     luxury_tax: 0.105
   MD:
+    full_name: "Maryland"
     price_multiplier:
       mean: 0.88
       sd: 0.08
     sales_tax: 0
     luxury_tax: 0.12
   VA:
+    full_name: "Virginia"
     price_multiplier:
       mean: 0.85
       sd: 0.08
     sales_tax: 0.053
     luxury_tax: 0.105
   PA:
+    full_name: "Pennsylvania"
     price_multiplier:
       mean: 0.85
       sd: 0.08
     sales_tax: 0.06
     luxury_tax: 0.11
   MN:
+    full_name: "Minnesota"
     price_multiplier:
       mean: 0.82
       sd: 0.06
     sales_tax: 0.06875
     luxury_tax: 0.105
   UT:
+    full_name: "Utah"
     price_multiplier:
       mean: 0.82
       sd: 0.08
     sales_tax: 0.0485
     luxury_tax: 0.115
   NC:
+    full_name: "North Carolina"
     price_multiplier:
       mean: 0.80
       sd: 0.07
     sales_tax: 0.0475
     luxury_tax: 0.11
   GA:             # Atlanta market
+    full_name: "Georgia"
     price_multiplier:
       mean: 0.80
       sd: 0.08
     sales_tax: 0.04
     luxury_tax: 0.11
   MI:
+    full_name: "Michigan"
     price_multiplier:
       mean: 0.78
       sd: 0.06
     sales_tax: 0
     luxury_tax: 0.12
   WI:
+    full_name: "Wisconsin"
     price_multiplier:
       mean: 0.78
       sd: 0.06
     sales_tax: 0.05
     luxury_tax: 0.115
   SC:             # Charleston/Myrtle Beach
+    full_name: "South Carolina"
     price_multiplier:
       mean: 0.78
       sd: 0.08
     sales_tax: 0.06
     luxury_tax: 0.105
   TN:             # Nashville tourism
+    full_name: "Tennessee"
     price_multiplier:
       mean: 0.78
       sd: 0.08
     sales_tax: 0.07
     luxury_tax: 0.125
   NH:
+    full_name: "New Hampshire"
     price_multiplier:
       mean: 0.78
       sd: 0.06
     sales_tax: 0
     luxury_tax: 0.09
   VT:             # Ski areas
+    full_name: "Vermont"
     price_multiplier:
       mean: 0.78
       sd: 0.07
     sales_tax: 0.06
     luxury_tax: 0.10
   ME:
+    full_name: "Maine"
     price_multiplier:
       mean: 0.75
       sd: 0.06
     sales_tax: 0
     luxury_tax: 0.09
   RI:
+    full_name: "Rhode Island"
     price_multiplier:
       mean: 0.75
       sd: 0.06
     sales_tax: 0
     luxury_tax: 0.13
   DE:
+    full_name: "Delaware"
     price_multiplier:
       mean: 0.75
       sd: 0.05
@@ -351,84 +381,98 @@ state_data:
 
   # Value markets (0.60-0.75)
   LA:             # New Orleans vs rural
+    full_name: "Louisiana"
     price_multiplier:
       mean: 0.75
       sd: 0.10
     sales_tax: 0.0445
     luxury_tax: 0.135
   MO:             # Branson/KC/STL
+    full_name: "Missouri"
     price_multiplier:
       mean: 0.72
       sd: 0.08
     sales_tax: 0.04225
     luxury_tax: 0.125
   OH:
+    full_name: "Ohio"
     price_multiplier:
       mean: 0.72
       sd: 0.06
     sales_tax: 0.0575
     luxury_tax: 0.135
   IN:
+    full_name: "Indiana"
     price_multiplier:
       mean: 0.70
       sd: 0.05
     sales_tax: 0
     luxury_tax: 0.12
   KY:
+    full_name: "Kentucky"
     price_multiplier:
       mean: 0.70
       sd: 0.06
     sales_tax: 0
     luxury_tax: 0.115
   NM:
+    full_name: "New Mexico"
     price_multiplier:
       mean: 0.70
       sd: 0.07
     sales_tax: 0.04875
     luxury_tax: 0.105
   TX:             # Huge variation (Austin vs rural)
+    full_name: "Texas"
     price_multiplier:
       mean: 0.70
       sd: 0.10
     sales_tax: 0.0625
     luxury_tax: 0.15
   ID:
+    full_name: "Idaho"
     price_multiplier:
       mean: 0.70
       sd: 0.07
     sales_tax: 0.06
     luxury_tax: 0.10
   MT:             # Tourist areas vary
+    full_name: "Montana"
     price_multiplier:
       mean: 0.70
       sd: 0.08
     sales_tax: 0
     luxury_tax: 0.08
   IA:
+    full_name: "Iowa"
     price_multiplier:
       mean: 0.68
       sd: 0.05
     sales_tax: 0.06
     luxury_tax: 0.12
   KS:
+    full_name: "Kansas"
     price_multiplier:
       mean: 0.65
       sd: 0.05
     sales_tax: 0.065
     luxury_tax: 0.13
   NE:
+    full_name: "Nebraska"
     price_multiplier:
       mean: 0.65
       sd: 0.05
     sales_tax: 0.055
     luxury_tax: 0.115
   AL:
+    full_name: "Alabama"
     price_multiplier:
       mean: 0.65
       sd: 0.06
     sales_tax: 0.04
     luxury_tax: 0.115
   AK:             # Remote premium despite low population
+    full_name: "Alaska"
     price_multiplier:
       mean: 0.85
       sd: 0.10
@@ -437,42 +481,49 @@ state_data:
 
   # Budget markets (<0.65)
   AR:
+    full_name: "Arkansas"
     price_multiplier:
       mean: 0.62
       sd: 0.05
     sales_tax: 0.065
     luxury_tax: 0.105
   OK:
+    full_name: "Oklahoma"
     price_multiplier:
       mean: 0.62
       sd: 0.05
     sales_tax: 0.045
     luxury_tax: 0.115
   MS:
+    full_name: "Mississippi"
     price_multiplier:
       mean: 0.60
       sd: 0.05
     sales_tax: 0.07
     luxury_tax: 0.09
   WV:
+    full_name: "West Virginia"
     price_multiplier:
       mean: 0.60
       sd: 0.05
     sales_tax: 0.06
     luxury_tax: 0.10
   SD:
+    full_name: "South Dakota"
     price_multiplier:
       mean: 0.62
       sd: 0.06
     sales_tax: 0.042
     luxury_tax: 0.095
   ND:
+    full_name: "North Dakota"
     price_multiplier:
       mean: 0.62
       sd: 0.05
     sales_tax: 0.05
     luxury_tax: 0.09
   WY:
+    full_name: "Wyoming"
     price_multiplier:
       mean: 0.65
       sd: 0.06
@@ -633,6 +684,9 @@ hotel_types:
     base_price:
       mean: 69.00
       sd: 12.00
+    price_multiplier:
+      mean: 1
+      sd: 0
     rooms:
       total_rooms:
         mean: 40
@@ -653,6 +707,9 @@ hotel_types:
     base_price:
       mean: 89.00
       sd: 15.00
+    price_multiplier:
+      mean: 1.35
+      sd: 0.50
     rooms:
       total_rooms:
         mean: 100
@@ -679,6 +736,9 @@ hotel_types:
     base_price:
       mean: 129.00
       sd: 25.00
+    price_multiplier:
+      mean: 1.75
+      sd: 0.6
     rooms:
       total_rooms:
         mean: 300
@@ -761,7 +821,12 @@ customer_archetypes:
       '4-7': 0.1
     min_gap_days: 30
     incidental_probability: 0.3  # Low
-
+    gift_probability: 0.4
+    gift_category_probabilities:
+      souvenir: 0.2
+      food: 0.2
+      supply: 0.15
+  
   regular_leisure:
     percentage: 0.15
     stays_per_year_mean: 3
@@ -774,6 +839,11 @@ customer_archetypes:
       '8-14': 0.05
     min_gap_days: 14
     incidental_probability: 0.5  # Medium
+    gift_probability: 0.6
+    gift_category_probabilities:
+      souvenir: 0.25
+      food: 0.2
+      supply: 0.1
 
   business:
     percentage: 0.10
@@ -786,6 +856,11 @@ customer_archetypes:
       '4-7': 0.05
     min_gap_days: 3
     incidental_probability: 0.6  # Medium-High
+    gift_probability: 0.25
+    gift_category_probabilities:
+      souvenir: 0.1
+      food: 0.45
+      supply: 0.25
 
   corporate:
     percentage: 0.04
@@ -797,6 +872,11 @@ customer_archetypes:
       '3': 0.1
     min_gap_days: 1
     incidental_probability: 0.8  # High
+    gift_probability: 0.1
+    gift_category_probabilities:
+      souvenir: 0.1
+      food: 0.35
+      supply: 0.3
 
   road_warrior:
     percentage: 0.01
@@ -808,6 +888,11 @@ customer_archetypes:
       '3': 0.05
     min_gap_days: 1
     incidental_probability: 0.4  # Low-Medium (efficient travelers)
+    gift_probability: 0.25
+    gift_category_probabilities:
+      souvenir: 0.05
+      food: 0.35
+      supply: 0.5
 
 customer_email_domains:
   - "gmail.com"
@@ -832,6 +917,232 @@ customer_email_domains:
   - "sbcglobal.net"
   - "bellsouth.net"
 
+gifts:
+  property_specific:
+    - name: "{name} Keyring"
+      price: 
+        mean: 2.99
+        min: 0.99
+        sd: 4.0
+    - name: "{name} Magnet"
+      price:
+        mean: 4.99
+        min: 0.99
+        sd: 4.0
+    - name: "{name} T-Shirt"
+      price:
+        mean: 19.99
+        min: 0.99
+        sd: 4.0
+    - name: "{name} Brand Towel"
+      price:
+        mean: 24.99
+        min: 9.99
+        sd: 15.0
+    - name: "Postcard - {name}"
+      price:
+        mean: 0.99
+        min: 0.49
+        sd: 1.0
+    - name: "{name} Shot Glass"
+      price:
+        mean: 9.99
+        min: 6.99
+        sd: 5.0
+  tourist_region_specific:
+    - name: "Postcard - {name}"
+      price:
+        mean: 0.99
+        min: 0.49
+        sd: 1.0
+    - name: "{name} Magnet"
+      price:
+        mean: 4.99
+        min: 0.99
+        sd: 4.0
+    - name: "{name} T-Shirt"
+      price:
+        mean: 24.99
+        min: 0.99
+        sd: 4.0
+    - name: "{name} Tour Book"
+      price:
+        mean: 24.99
+        min: 11.99
+        sd: 15.0
+    - name: "{name} Souvenir DVD"
+      price:
+        mean: 29.99
+        min: 19.99
+        sd: 20.0
+    - name: "{name} Jersey"
+      price:
+        mean: 29.99
+        min: 19.99
+        sd: 20.0
+    - name: "{name} Baseball Cap"
+      price:
+        mean: 24.99
+        min: 14.99
+        sd: 15.0
+  state_specific:
+    - name: "'I Love {name}' T-shirt"
+      price:
+        mean: 24.99
+        min: 19.99
+        sd: 20.0
+    - name: "{name} Baseball Cap"
+      price:
+        mean: 24.99
+        min: 14.99
+        sd: 15.0
+    - name: "{name} Postcard Book"
+      price:
+        mean: 24.99
+        min: 14.99
+        sd: 15.0
+    - name: "{name} Keychain"
+      price:
+        mean: 4.99
+        min: 1.99
+        sd: 2.0
+    - name: "State of {name} Poster"
+      price:
+        mean: 19.99
+        min: 9.99
+        sd: 15.0
+  snacks:
+    - name: "Bottled Water"
+      price:
+        mean: 2.49
+        min: 1.99
+        sd: 2.0
+    - name: "Potato Chips"
+      price:
+        mean: 2.99
+        min: 1.99
+        sd: 2.5
+    - name: "Chocolate Bar"
+      price:
+        mean: 1.99
+        min: 0.99
+        sd: 2.0
+    - name: "Soda"
+      price:
+        mean: 2.99
+        min: 0.99
+        sd: 2.0
+    - name: "Beef Jerky Stick"
+      price:
+        mean: 4.99
+        min: 2.99
+        sd: 4.0
+  supplies:
+    - name: "Toothbrush"
+      price: 
+        mean: 4.99
+        min: 2.99
+        sd: 3.5
+    - name: "Toothpaste"
+      price:
+        mean: 4.99
+        min: 2.99
+        sd: 3.5
+    - name: "Deodorant"
+      price:
+        mean: 3.99
+        min: 1.99
+        sd: 3.0
+    - name: "Travel Shampoo"
+      price:
+        mean: 5.99
+        min: 3.99
+        sd: 5.0
+    - name: "Travel Conditioner"
+      price:
+        mean: 5.99
+        min: 3.99
+        sd: 5.0
+    - name: "Travel Soap Bar"
+      price:
+        mean: 1.99
+        min: 0.99
+        sd: 1.0
+    - name: "Travel Mouthwash"
+      price:
+        mean: 2.99
+        min: 1.99
+        sd: 2.0
+    - name: "Pain Relief Tablets"
+      price: 
+        mean: 6.99
+        min: 3.99
+        sd: 5.0
+    - name: "Travel Pillow"
+      price:
+        mean: 19.99
+        min: 9.99
+        sd: 15.0
+    - name: "Travel Blanket"
+      price:
+        mean: 19.99
+        min: 9.99
+        sd: 15.0
+    - name: "Travel Pillow"
+      price:
+        mean: 19.99
+        min: 9.99
+        sd: 15.0
+    - name: "Travel Blanket"
+      price:
+        mean: 29.99
+        min: 19.99
+        sd: 25.0
+    - name: "Headphones (Wired)"
+      price:
+        mean: 24.99
+        min: 14.99
+        sd: 20.0
+    - name: "Headphones (Wireless)"
+      price:
+        mean: 49.99
+        min: 24.99
+        sd: 30.0
+    - name: "Camera Memory Card"
+      price:
+        mean: 39.99
+        min: 29.99
+        sd: 25.0
+    - name: "Nail Clippers"
+      price:
+        mean: 9.99
+        min: 6.99
+        sd: 5.0
+    - name: "Batteries"
+      price:
+        mean: 12.99
+        min: 6.99
+        sd: 10.0
+  price_suffixes:
+    - 0
+    - 9
+    - 19
+    - 25
+    - 29
+    - 39
+    - 49
+    - 50
+    - 59
+    - 69
+    - 75
+    - 79
+    - 89
+    - 99
+  anonymous_gift_probabilities:
+    souvenir: 0.15
+    food: 0.4
+    supply: 0.3
+  
 misc:
   hotel_name_templates:
     - '{adj} {noun} {type}'
@@ -851,6 +1162,18 @@ misc:
     - 'The {type} {noun} at {loc}'
     - '{noun} {type} of {loc}'
     - 'The {type} {adj} {noun}'
+  giftshop_name_templates:
+    - '{name} Gifts'
+    - 'Gifts at {name}'
+    - '{name} Gift Shop'
+    - 'Gift Shop at {name}'
+    - '{name} Treasures'
+    - '{name} Keepsakes'
+    - '{name} Gifts & More'
+    - 'The Market at {name}'
+    - 'The Gift Shop at {name}'
+    - 'Gifts by {name}'
+    - '{name} Boutique'
   customer_email_templates:
     - '{fname}.{lname}@{domain}'
     - '{fname}{lname}@{domain}'
@@ -862,6 +1185,11 @@ misc:
     - '{adj}{noun}'
     - '{noun}{type}'
     - '{noun}at{loc}'
+  unit_names:
+    - Suite
+    - '#'
+    - Box
+    - Unit
   hotel_domain_tlds:
     - .com
     - .com

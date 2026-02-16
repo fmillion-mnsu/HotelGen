@@ -7,15 +7,17 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xl9045qi.hotelgen.simulation import HGSimulationState
 
-def phase3(inst: HGSimulationState):
-    """Prepare the generated data for simulation use.
+def phase3(inst: HGSimulationState) -> bool:
+    """Phase 3 of HotelGen.
+    
+    Prepare the generated data for simulation use.
 
     This involves precomputing certain data structures to make simulation runs faster.
     """
 
     if inst.state.get("last_phase", -1) >= 3:
         print("[bold]Phase 3 already completed, skipping.")
-        return
+        return False
 
     # First, we need a simple dict consisting of
     #   key: dict
@@ -70,3 +72,5 @@ def phase3(inst: HGSimulationState):
     print(f"Preparation ready. Will generate {inst.state['days_left']} days of simulated transactions.")
 
     inst.state['last_phase'] = 3
+
+    return True

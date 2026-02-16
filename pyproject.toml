@@ -1,6 +1,6 @@
 [project]
 name = "hotelgen"
-version = "0.1.0"
+version = "0.2.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -8,6 +8,7 @@ dependencies = [
     "faker>=40.1.2",
     "mssql-python>=1.2.0",
     "numpy>=2.4.2",
+    "pydantic>=2.12.5",
     "pymongo>=4.16.0",
     "pyyaml>=6.0.3",
     "rich>=14.3.1",

@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from xl9045qi.hotelgen.simulation import HGSimulationState
 
-def phase1(inst: HGSimulationState):
+def phase1(inst: HGSimulationState) -> bool:
     """Phase 1 of the hotel generation simulation.
 
     This phase generates the hotels based on the parameters set in phase 0.
@@ -20,7 +20,7 @@ def phase1(inst: HGSimulationState):
 
     if inst.state.get("last_phase", -1) >= 1:
         print("[bold]Phase 1 already completed, skipping.")
-        return
+        return False
 
     from xl9045qi.hotelgen.generators.hotel import generate_hotel
     from xl9045qi.hotelgen.generators.distribution import generate_state_distribution
@@ -31,13 +31,11 @@ def phase1(inst: HGSimulationState):
     # per region, but after that we'll just scatter them randomly.
     tourist_regions = list(data.tourist_regions.keys())
     r.shuffle(tourist_regions)
-
     for _ in tqdm.tqdm(range(inst.state['gen_params']['property_distribution']['resorts']), desc="Generating resorts"):
         if len(tourist_regions) > 0:
             region = tourist_regions.pop()
         else:
             region = r.choice(list(data.tourist_regions.keys()))
-
         hotel = generate_hotel("resort", tourist_region=region, state="")
         inst.state['hotels'].append(hotel)
 
@@ -49,6 +47,7 @@ def phase1(inst: HGSimulationState):
                 hotel = generate_hotel("hotel", state=state)
                 inst.state['hotels'].append(hotel)
                 pbar.update(1)
+
     # Phase 1.3: Generate motels
     dist = generate_state_distribution(inst.state['gen_params']['property_distribution']['motels'], reassignments=inst.state['gen_params']['property_distribution']['motels']//25)
     with tqdm.tqdm(total=inst.state['gen_params']['property_distribution']['motels'], desc="Generating motels") as pbar:
@@ -65,3 +64,5 @@ def phase1(inst: HGSimulationState):
 
     print(f"{len(inst.state['hotels'])} hotels generated successfully.")
     inst.state['last_phase'] = 1
+
+    return True
