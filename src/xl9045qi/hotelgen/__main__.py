@@ -44,7 +44,21 @@ def main():
         input_path = os.path.abspath(args.input)
         print("Resuming from input file: " + input_path)
         generator = sim.HGSimulationState(job)
-        generator.import_pkl(input_path)
+        try:
+            generator.import_pkl(input_path)
+        except Exception as e:
+            print("ERROR: Could not import from input file.")
+            print(str(e))
+            exit(1)
+        if "data_version" not in generator.state:
+            dv = 0
+        else:
+            dv = generator.state["data_version"]
+        
+        if dv < 1:
+            print("ERROR: Input file is too old. Please use migration tool.")
+            exit(1)
+
         generator.job = job # Replace job in case ours is newer
     else:
         print("Initializing generator...")
