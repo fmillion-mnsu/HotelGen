@@ -1,7 +1,8 @@
+from functools import cache
 import datetime
 import random
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from xl9045qi.hotelgen import data
 from xl9045qi.hotelgen.generators import r
@@ -179,9 +180,29 @@ def generate_transaction(self: 'HGSimulationState', hotel_id: int, customer: int
         payment=payment
     )
 
-def generate_retail_transaction(self: 'HGSimulationState', store_id: int, customer_id: Optional[int] = -1) -> RetailTransaction:
+@cache
+def get_store_id_by_hotel_id(self: 'HGSimulationState', hotel_id: int) -> Optional[int]:
+    """Get the store ID for a hotel ID."""
+    try:
+        return [x.id for x in self.state['giftshops'] if x.located_at == hotel_id][0]
+    except IndexError:
+        return None
+
+def generate_retail_transaction(self: 'HGSimulationState', store_id: int = None, hotel_id: int = None, date: datetime.date = datetime.datetime.now().date(), customer_id: Optional[int] = -1) -> Optional[RetailTransaction]:
+
     """Generate a retail transaction for a gift shop."""
     
+    if store_id is None and hotel_id is None:
+        raise ValueError("Must supply either store_id or hotel_id.")
+    
+    if store_id is None:
+        # Figure out which store is at the hotel
+        store_id = get_store_id_by_hotel_id(self, hotel_id)
+        if store_id is None:
+            import pdb
+            pdb.set_trace()
+            raise ValueError(f"No store ID given, and no store found for hotel ID {hotel_id}.")
+
     # Store customers are tracked separately.
     if customer_id in self.state['cache'].get('retail_customers_by_id',{}).keys():
         this_customer: RetailCustomer = self.state['cache']['retail_customers_by_id'][customer_id]
@@ -209,6 +230,12 @@ def generate_retail_transaction(self: 'HGSimulationState', store_id: int, custom
     else:
         archetype = "anonymous"
 
+    # Should we return anything at all?
+    if archetype != "anonymous":
+        gift_chance = data.customer_archetypes[archetype]['gift_probability']
+        if random.random() > gift_chance:
+            return None
+
     # Get the category probabilities for this archetype
     if archetype == "anonymous":
         category_probabilities = data.gifts['anonymous_gift_probabilities']
@@ -231,7 +258,7 @@ def generate_retail_transaction(self: 'HGSimulationState', store_id: int, custom
     line_items = []
     running_taxed_total = 0.0
 
-    for _ in product_count:
+    for _ in range(product_count):
         # Choose a category based on the probabilities
         category = r.choices(list(category_probabilities.keys()), weights=list(category_probabilities.values()))[0]
         

@@ -19,16 +19,21 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
     # Create name
     giftshop_name = random.choice(data.misc['giftshop_name_templates']).format(name=giftshop_name).strip()
 
-    unit_no = random.randint(10,200)
-    unit_name = random.choice(data.misc['unit_names'])
+    if (random.random() > 0.5):
+        unit_no = random.randint(10,200)
+        unit_name = random.choice(data.misc['unit_names'])
+    else:
+        unit_no = ''
+        unit_name = ''
 
     # Form entry
     giftshop_entry = GiftShop(
         name=giftshop_name,
-        street=hotel.street + f" {unit_name} {unit_no}",
+        street=hotel.street + f" {unit_name} {unit_no}".strip(),
         city=hotel.city,
         state=hotel.state,
         zip=hotel.zip,
+        located_at=hotel.id,
     )
 
     hotel_class = hotel.type.lower()
@@ -53,10 +58,10 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
             price = product.get("price",{}).get("min", 5.00)
         
         productList.append(Product(
-            name=this_name, 
-            price=price, 
-            category="state_souvenir",
-            sold_at=hotel.id))
+            name=this_name,
+            price=price,
+            category="souvenir",
+            sold_at=-1))
     
     for product in data.gifts['state_specific']:
         state_name = data.state_data[hotel.state].get("full_name","State")
@@ -75,9 +80,9 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
             price = product.get("price",{}).get("min", 5.00)
 
         productList.append(Product(
-            name=this_name, 
-            price=price, 
-            category="state_souvenir",
+            name=this_name,
+            price=price,
+            category="souvenir",
             sold_at=hotel.id))
 
     if hotel.tourist_region:
@@ -97,9 +102,9 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
                 price = product.get("price",{}).get("min", 5.00)
 
             productList.append(Product(
-                name=this_name, 
-                price=price, 
-                category="state_souvenir",
+                name=this_name,
+                price=price,
+                category="souvenir",
                 sold_at=hotel.id))
     
     for product in data.gifts['snacks']:

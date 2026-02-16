@@ -128,6 +128,7 @@ class GiftShop:
     city: str
     state: str  # 2 char max
     zip: str  # 10 char max
+    located_at: int
     date_opened: Optional[datetime] = None
     id: Optional[int] = None
 

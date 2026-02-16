@@ -7,7 +7,7 @@ from . import phase0, phase1, phase2, phase3, phase4, phase5
 
 from xl9045qi.hotelgen import data
 
-from .day import get_datetime_by_day_num, process_day
+from .phase4 import get_datetime_by_day_num, process_day
 
 PHASES = [
     phase0.phase0,

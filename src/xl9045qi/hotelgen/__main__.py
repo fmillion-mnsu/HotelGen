@@ -29,6 +29,8 @@ def main():
     parser.add_argument("-i","--input",type=str,help="Path to input pickle file to resume from")
     parser.add_argument("--checkpoints",action="store_true",help="Save checkpoints in the output directory after each phase")
     parser.add_argument("--no-database",action="store_true",help="Do not load data into the database; instead, only produce the output .pkl file")
+    parser.add_argument("--db_assume_complete", type=str, metavar="DB", help="Assume the load for database DB is complete even if the state says otherwise")
+
     args = parser.parse_args()
 
     print("Reading job: " + args.JOBFILE)
