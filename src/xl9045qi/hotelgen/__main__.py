@@ -3,7 +3,7 @@
 import argparse
 import os
 import os.path
-
+import time
 from pydantic import TypeAdapter
 from yaml import safe_load
 
@@ -47,7 +47,9 @@ def main():
         print("Resuming from input file: " + input_path)
         generator = sim.HGSimulationState(job)
         try:
+            st = time.time()
             generator.import_pkl(input_path)
+            et = time.time() - st
         except Exception as e:
             print("ERROR: Could not import from input file.")
             print(str(e))
@@ -63,7 +65,11 @@ def main():
 
         generator.job = job # Replace job in case ours is newer
 
-        print("Checkpoint loaded successfully.")
+        ckpt_size = os.path.getsize(input_path)
+        bps = ckpt_size / et
+        print(f"Checkpoint loaded successfully in {et:.2f} seconds.")
+        print(f"Checkpoint size: {ckpt_size / 1024 / 1024:.2f} MB")
+        print(f"Checkpoint load rate: {bps / 1024 / 1024:.2f} MB/s")
  
     else:
         print("Initializing generator...")
@@ -78,11 +84,26 @@ def main():
             if success:
                 ckpt_name = os.path.splitext(os.path.basename(output_path))[0] + f"_p{counter:02d}.pkl"
                 print("Storing checkpoint " + ckpt_name)
-                generator.export(os.path.join(output_dir, ckpt_name))
+                ckpt_path = os.path.join(output_dir, ckpt_name)
+                st = time.time()
+                generator.export(ckpt_path)
+                et = time.time() - st
+                ckpt_size = os.path.getsize(ckpt_path)
+                bps = ckpt_size / et
+                print(f"Checkpoint stored successfully in {et:.2f} seconds.")
+                print(f"Checkpoint size: {ckpt_size / 1024 / 1024:.2f} MB")
+                print(f"Checkpoint save rate: {bps / 1024 / 1024:.2f} MB/s")
         counter += 1
 
     print("Writing output to " + output_path)
+    st = time.time()
     generator.export(output_path)
+    et = time.time() - st
+    output_size = os.path.getsize(output_path)
+    bps = output_size / et
+    print(f"Output written successfully in {et:.2f} seconds.")
+    print(f"Output size: {output_size / 1024 / 1024:.2f} MB")
+    print(f"Output save rate: {bps / 1024 / 1024:.2f} MB/s")
 
     if args.db_assume_complete:
         for db_name in args.db_assume_complete:
