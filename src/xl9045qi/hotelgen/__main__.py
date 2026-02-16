@@ -95,15 +95,30 @@ def main():
                 print(f"Checkpoint save rate: {bps / 1024 / 1024:.2f} MB/s")
         counter += 1
 
-    print("Writing output to " + output_path)
-    st = time.time()
-    generator.export(output_path)
-    et = time.time() - st
-    output_size = os.path.getsize(output_path)
-    bps = output_size / et
-    print(f"Output written successfully in {et:.2f} seconds.")
-    print(f"Output size: {output_size / 1024 / 1024:.2f} MB")
-    print(f"Output save rate: {bps / 1024 / 1024:.2f} MB/s")
+    if not args.checkpoints:
+        print("Writing output to " + output_path)
+        st = time.time()
+        generator.export(output_path)
+        et = time.time() - st
+        output_size = os.path.getsize(output_path)
+        bps = output_size / et
+        print(f"Output written successfully in {et:.2f} seconds.")
+        print(f"Output size: {output_size / 1024 / 1024:.2f} MB")
+        print(f"Output save rate: {bps / 1024 / 1024:.2f} MB/s")
+    else:
+        # copy the last checkpoint
+        print("Writing output to " + output_path)
+        st = time.time()
+        ckpt_name = os.path.splitext(os.path.basename(output_path))[0] + f"_p{counter:02d}.pkl"
+        ckpt_path = os.path.join(output_dir, ckpt_name)
+        shutil.copyfile(ckpt_path, output_path)
+        et = time.time() - st
+        output_size = os.path.getsize(output_path)
+        bps = output_size / et
+        print(f"Output written successfully in {et:.2f} seconds.")
+        print(f"Output size: {output_size / 1024 / 1024:.2f} MB")
+        print(f"Output save rate: {bps / 1024 / 1024:.2f} MB/s")
+        print("")
 
     if args.db_assume_complete:
         for db_name in args.db_assume_complete:
