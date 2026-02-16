@@ -52,7 +52,11 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
         if price < product.get("price",{}).get("min", 5.00):
             price = product.get("price",{}).get("min", 5.00)
         
-        productList.append(Product(name=this_name, price=price, category="souvenir"))
+        productList.append(Product(
+            name=this_name, 
+            price=price, 
+            category="state_souvenir",
+            sold_at=hotel.id))
     
     for product in data.gifts['state_specific']:
         state_name = data.state_data[hotel.state].get("full_name","State")
@@ -70,8 +74,12 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
         if price < product.get("price",{}).get("min", 5.00):
             price = product.get("price",{}).get("min", 5.00)
 
-        productList.append(Product(name=this_name, price=price, category="souvenir"))
-    
+        productList.append(Product(
+            name=this_name, 
+            price=price, 
+            category="state_souvenir",
+            sold_at=hotel.id))
+
     if hotel.tourist_region:
         for product in data.gifts['tourist_region_specific']:
             this_name = product['name'].format(name=hotel.tourist_region.replace("_"," ").title())
@@ -88,7 +96,11 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
             if price < product.get("price",{}).get("min", 5.00):
                 price = product.get("price",{}).get("min", 5.00)
 
-            productList.append(Product(name=this_name, price=price, category="state_souvenir"))
+            productList.append(Product(
+                name=this_name, 
+                price=price, 
+                category="state_souvenir",
+                sold_at=hotel.id))
     
     for product in data.gifts['snacks']:
         this_name = product['name']
@@ -105,7 +117,11 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
         if price < product.get("price",{}).get("min", 5.00):
             price = product.get("price",{}).get("min", 5.00)
 
-        productList.append(Product(name=this_name, price=price, category="food"))
+        productList.append(Product(
+            name=this_name, 
+            price=price, 
+            category="food",
+            sold_at=hotel.id))
 
     for product in data.gifts['supplies']:
         this_name = product['name']
@@ -122,7 +138,11 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
         if price < product.get("price",{}).get("min", 5.00):
             price = product.get("price",{}).get("min", 5.00)
 
-        productList.append(Product(name=this_name, price=price, category="supply"))
+        productList.append(Product(
+            name=this_name, 
+            price=price, 
+            category="supply",
+            sold_at=hotel.id))
 
     # Done - Return the tuple
     return giftshop_entry, productList

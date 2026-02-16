@@ -1,11 +1,14 @@
 import datetime
+from typing import TYPE_CHECKING
 
 from xl9045qi.hotelgen import data
-from xl9045qi.hotelgen import simulation
 from xl9045qi.hotelgen.generators import r
 from xl9045qi.hotelgen.models import Transaction, LineItem, Payment
 
-def generate_transaction(self: simulation.HGSimulationState, hotel_id: int, customer: int, stay_length: int, room_type: str) -> Transaction:
+if TYPE_CHECKING:
+    from xl9045qi.hotelgen.simulation import HGSimulationState
+
+def generate_transaction(self: 'HGSimulationState', hotel_id: int, customer: int, stay_length: int, room_type: str) -> Transaction:
     """Generate a transaction for a hotel stay.
 
     Args:

@@ -4,6 +4,7 @@ import argparse
 import os
 import os.path
 
+from pydantic import TypeAdapter
 from yaml import safe_load
 
 import xl9045qi.hotelgen.simulation as sim
@@ -60,9 +61,13 @@ def main():
                 generator.export(os.path.join(output_dir, ckpt_name))
         counter += 1
 
-    import json
-    print(json.dumps(generator.state['giftshops'], indent=2))
-    print(json.dumps(generator.state['products'], indent=2))
+    from xl9045qi.hotelgen.models import GiftShop, Product
+    adapter = TypeAdapter(list[GiftShop])
+    json_output = adapter.dump_json(generator.state['giftshops'], indent=2).decode()
+    print(json_output)
+    adapter = TypeAdapter(list[Product])
+    json_output = adapter.dump_json(generator.state['products'], indent=2).decode()
+    print(json_output)
     exit(1)
     print("Writing output to " + output_path)
     generator.export(output_path)

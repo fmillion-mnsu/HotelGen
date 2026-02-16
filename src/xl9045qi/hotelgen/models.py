@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from pydantic.dataclasses import dataclass
 from datetime import datetime
 from typing import Optional
 
@@ -100,4 +100,5 @@ class Product:
     name: str
     price: float
     category: str
+    sold_at: int
     id: Optional[int] = None
