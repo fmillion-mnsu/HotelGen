@@ -207,7 +207,7 @@ def main():
 
     with open(output_path, "wb") as f:
         pickle.dump(source_obj, f)
-    print(f"Migration completed. Results are in {output_path}")
+    print(f"Migration to data version 1 completed. Results are in {output_path}")
 
 if __name__ == "__main__":
     main()

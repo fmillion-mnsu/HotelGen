@@ -280,13 +280,14 @@ def generate_retail_transaction(self: 'HGSimulationState', store_id: int = None,
 
     # Do we have sales tax?
     sales_tax = data.state_data[store_data.state]['sales_tax']
-    if sales_tax > 0.02:
+    if sales_tax > 0:
         tax_amount = running_taxed_total * sales_tax
-        line_items.append(LineItem(
-            description=f"{store_data.state.upper()} Sales Tax @ {sales_tax*100:.2f}%",
-            amount_per=tax_amount,
-            quantity=1
-        ))
+        if tax_amount > 0.02:
+            line_items.append(LineItem(
+                description=f"{store_data.state.upper()} Sales Tax @ {sales_tax*100:.2f}%",
+                amount_per=tax_amount,
+                quantity=1
+            ))
     
     # Get the total of all line items taking qty into account
     total_paid = sum([x.amount_per * x.quantity for x in line_items])
