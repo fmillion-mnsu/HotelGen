@@ -29,7 +29,7 @@ def main():
     parser.add_argument("-i","--input",type=str,help="Path to input pickle file to resume from")
     parser.add_argument("--checkpoints",action="store_true",help="Save checkpoints in the output directory after each phase")
     parser.add_argument("--no-database",action="store_true",help="Do not load data into the database; instead, only produce the output .pkl file")
-    parser.add_argument("--db_assume_complete", type=str, metavar="DB", help="Assume the load for database DB is complete even if the state says otherwise")
+    parser.add_argument("--db_assume_complete", type=str, metavar="DB", action="append", help="Assume the load for database DB is complete even if the state says otherwise (can be specified multiple times)")
 
     args = parser.parse_args()
 
@@ -80,34 +80,42 @@ def main():
     print("Writing output to " + output_path)
     generator.export(output_path)
 
+    if args.db_assume_complete:
+        for db_name in args.db_assume_complete:
+            print(f"WARNING: marking {db_name} load as completed")
+            generator.state.setdefault('load_state', {})[db_name] = 1
+
     if args.no_database:
         print("Skipping database load.")
         print(f"Output has been written to {output_path}.")
         print("You can import this into your database by executing:\n")
         print(f"  hotelgen -i {output_path}\n")
-      
+
     else:
         print("Loading data into database...")
 
         for loader_class in ld.LOADERS:
             db = loader_class(job)
-            try:
-                print(f"Database {db.__class__.__name__}:")
-                db.connect()
-                if args.drop:
-                    print("  Dropping existing tables...")
+            if db.check_should_run(generator.state):
+                try:
+                    print(f"Database {db.__class__.__name__}:")
+                    db.connect()
+                    if args.drop:
+                        print("  Dropping existing tables...")
                     db.drop_all_tables()
-                print("  Creating database tables...")
-                db.make_schema()
+                    print("  Creating database tables...")
+                    db.make_schema()
 
-            except Exception as e:
-                print("ERROR: Could not initialize database.")
-                print("To generate data without loading to a database, use --no-database.")
-                print(str(e))
-                exit(1)
-            
-            print("  Loading data...")
-            db.load_data(generator.state)
+                except Exception as e:
+                    print("ERROR: Could not initialize database.")
+                    print("To generate data without loading to a database, use --no-database.")
+                    print(str(e))
+                    exit(1)
+                
+                print("  Loading data...")
+                db.load_data(generator.state)
+            else:
+                print(f"Database {db.__class__.__name__} already loaded.")
 
     print("Exiting program.")
     os._exit(0)

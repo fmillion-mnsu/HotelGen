@@ -10,11 +10,8 @@ job:
       password: "your_password_here" # Database password
       dbname: "hotelgen"          # Database name to use
     mongo:
-      host: "localhost"
-      username: "admin"
-      password: "your-password-here"
-      dbname: "hotelgen"
-
+      url: "mongodb://admin:Academic2026U00!@192.168.32.4:20010/hotelgen?tls=true&tlsInsecure=true&authSource=admin"
+      
   # Generation parameters
   generation:
     # Date range for simulation

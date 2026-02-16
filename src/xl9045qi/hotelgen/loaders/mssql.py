@@ -211,7 +211,6 @@ class MssqlDatabaseLoader():
         self.job = job
 
     def check_should_run(self, state: dict):
-        
         return state.get("load_state",{}).get("mssql",0) == 0
 
     def make_schema(self):
