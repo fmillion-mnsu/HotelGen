@@ -45,7 +45,7 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
     for product in data.gifts['property_specific']:
         this_name = product['name'].format(name=property_base)
 
-        price = rand(product.get("price",{}).get("mean", 10.00), product.get("price",{}).get("sd",2.00))
+        price = rand(product.get("price",{}).get("mean", 10.00), product.get("price",{}).get("sd",2.00), min_val=0.50, max_val=200.00)
         price = rp(price)
         multiplier = rand(
             data.hotel_types[hotel_class].get("price_multiplier",{}).get("mean", 1.0),
@@ -67,7 +67,7 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
         state_name = data.state_data[hotel.state].get("full_name","State")
         this_name = product['name'].format(name=state_name)
 
-        price = rand(product.get("price",{}).get("mean", 10.00), product.get("price",{}).get("sd",2.00))
+        price = rand(product.get("price",{}).get("mean", 10.00), product.get("price",{}).get("sd",2.00), min_val=0.50, max_val=200.00)
         price = rp(price)
         multiplier = rand(
             data.hotel_types[hotel_class].get("price_multiplier",{}).get("mean", 1.0),
@@ -89,7 +89,7 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
         for product in data.gifts['tourist_region_specific']:
             this_name = product['name'].format(name=hotel.tourist_region.replace("_"," ").title())
 
-            price = rand(product.get("price",{}).get("mean", 10.00), product.get("price",{}).get("sd",2.00))
+            price = rand(product.get("price",{}).get("mean", 10.00), product.get("price",{}).get("sd",2.00), min_val=0.50, max_val=200.00)
             price = rp(price)
             multiplier = rand(
                 data.hotel_types[hotel_class].get("price_multiplier",{}).get("mean", 1.0),
@@ -110,7 +110,7 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
     for product in data.gifts['snacks']:
         this_name = product['name']
 
-        price = rand(product.get("price",{}).get("mean", 10.00), product.get("price",{}).get("sd",2.00))
+        price = rand(product.get("price",{}).get("mean", 10.00), product.get("price",{}).get("sd",2.00), min_val=0.50, max_val=200.00)
         price = rp(price)
         multiplier = rand(
             data.hotel_types[hotel_class].get("price_multiplier",{}).get("mean", 1.0),
@@ -131,7 +131,7 @@ def generate_giftshop(hotel: Hotel) -> tuple[GiftShop, list[Product]]:
     for product in data.gifts['supplies']:
         this_name = product['name']
 
-        price = rand(product.get("price",{}).get("mean", 10.00), product.get("price",{}).get("sd",2.00))
+        price = rand(product.get("price",{}).get("mean", 10.00), product.get("price",{}).get("sd",2.00), min_val=0.50, max_val=200.00)
         price = rp(price)
         multiplier = rand(
             data.hotel_types[hotel_class].get("price_multiplier",{}).get("mean", 1.0),

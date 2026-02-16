@@ -115,10 +115,10 @@ def round_price(price: float) -> float:
 
     # Below the lowest price point — clamp to it
     if price_fraction < price_points[0]:
-        return price_points[0]
+        return price_integer + (price_points[0] / 100000)
     # At or above the highest — clamp to it
     if price_fraction >= price_points[-1]:
-        return price_points[-1]
+        return price_integer + (price_points[-1] / 100000)
 
     for i in range(len(price_points) - 1):
         lo = price_points[i]
