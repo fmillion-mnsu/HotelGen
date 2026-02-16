@@ -1,6 +1,8 @@
 import random
 from faker import Faker
 
+from xl9045qi.hotelgen import data
+
 r = random.Random()
 f = Faker()
 
@@ -94,3 +96,41 @@ def generate_stay_length(stay_weights: dict) -> int:
                 # It's a single value
                 return int(k)
 
+def round_price(price: float) -> float:
+    """
+    Round a value to the nearest price point using midpoint-based rounding.
+    
+    All values are scaled integers (e.g., 1 cent = 1000, so 29 cents = 29000).
+    
+    The midpoint between adjacent price points determines the rounding boundary:
+    values >= midpoint round up, values < midpoint round down.
+    """
+
+    price_points = [x * 1000 for x in data.gifts['price_suffixes']]
+    price_points.sort()
+
+    # Extract the fractional and integer component
+    price_fraction = int((price % 1) * 100000)
+    price_integer = int(price)
+
+    # Below the lowest price point — clamp to it
+    if price_fraction < price_points[0]:
+        return price_points[0]
+    # At or above the highest — clamp to it
+    if price_fraction >= price_points[-1]:
+        return price_points[-1]
+
+    for i in range(len(price_points) - 1):
+        lo = price_points[i]
+        hi = price_points[i + 1]
+
+        if lo <= price_fraction < hi:
+            # Compute the midpoint; integer division rounds down,
+            # which gives us the "round half up" behavior we want
+            mid = (hi - lo) // 2
+            
+            cfrac = hi if price_fraction >= lo + mid else lo
+
+            return price_integer + (cfrac / 100000)
+
+    return price  # fallback (shouldn't reach here)

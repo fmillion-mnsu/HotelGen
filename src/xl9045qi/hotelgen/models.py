@@ -83,3 +83,21 @@ class Transaction:
     total: float
     payment: Payment
     id: Optional[int] = None
+
+@dataclass
+class GiftShop:
+    """A gift shop."""
+    name: str
+    street: str
+    city: str
+    state: str  # 2 char max
+    zip: str  # 10 char max
+    id: Optional[int] = None
+
+@dataclass
+class Product:
+    """A product sold in a gift shop."""
+    name: str
+    price: float
+    category: str
+    id: Optional[int] = None

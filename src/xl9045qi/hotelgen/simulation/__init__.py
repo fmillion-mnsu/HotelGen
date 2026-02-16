@@ -9,7 +9,14 @@ from xl9045qi.hotelgen import data
 
 from .day import get_datetime_by_day_num, process_day
 
-PHASES = [phase0.phase0, phase1.phase1, phase2.phase2, phase3.phase3, phase4.phase4]
+PHASES = [
+    phase0.phase0,
+    phase1.phase1,
+    phase2.phase2,
+    phase3.phase3,
+    phase4.phase4,
+    phase5.phase5
+]
 
 class HGSimulationState:
 
@@ -24,6 +31,8 @@ class HGSimulationState:
         self.state['gen_params'] = {}
         self.state['next_transaction_id'] = 1
 
+        self.state['giftshops'] = []
+        
     def export(self, path: str):
         """Export the generated hotel data to a specified path as a pickle file.
 

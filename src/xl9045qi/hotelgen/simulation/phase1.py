@@ -31,13 +31,11 @@ def phase1(inst: HGSimulationState):
     # per region, but after that we'll just scatter them randomly.
     tourist_regions = list(data.tourist_regions.keys())
     r.shuffle(tourist_regions)
-
     for _ in tqdm.tqdm(range(inst.state['gen_params']['property_distribution']['resorts']), desc="Generating resorts"):
         if len(tourist_regions) > 0:
             region = tourist_regions.pop()
         else:
             region = r.choice(list(data.tourist_regions.keys()))
-
         hotel = generate_hotel("resort", tourist_region=region, state="")
         inst.state['hotels'].append(hotel)
 
@@ -49,6 +47,7 @@ def phase1(inst: HGSimulationState):
                 hotel = generate_hotel("hotel", state=state)
                 inst.state['hotels'].append(hotel)
                 pbar.update(1)
+
     # Phase 1.3: Generate motels
     dist = generate_state_distribution(inst.state['gen_params']['property_distribution']['motels'], reassignments=inst.state['gen_params']['property_distribution']['motels']//25)
     with tqdm.tqdm(total=inst.state['gen_params']['property_distribution']['motels'], desc="Generating motels") as pbar:
