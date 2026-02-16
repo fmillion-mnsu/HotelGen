@@ -19,7 +19,7 @@ job:
   generation:
     # Date range for simulation
     dates:
-      start: "2024-01-01"  # Start date (YYYY-MM-DD)
+      start: "2024-01-01"  # Start date (YYYY-MM-DD) - MUST use correct format!
       end: "2024-06-30"    # End date (YYYY-MM-DD)
 
     # Hotel generation settings

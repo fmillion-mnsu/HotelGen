@@ -92,6 +92,7 @@ class GiftShop:
     city: str
     state: str  # 2 char max
     zip: str  # 10 char max
+    date_opened: datetime
     id: Optional[int] = None
 
 @dataclass

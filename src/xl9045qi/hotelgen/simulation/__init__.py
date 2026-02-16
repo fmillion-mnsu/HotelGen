@@ -35,6 +35,8 @@ class HGSimulationState:
 
         self.state['giftshops'] = []
         
+        self.state['data_version'] = 1 # CHANGE THIS IF YOU CHANGE THE DATA STRUCTURES!
+
     def export(self, path: str):
         """Export the generated hotel data to a specified path as a pickle file.
 

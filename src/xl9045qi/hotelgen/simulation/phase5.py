@@ -1,3 +1,4 @@
+import datetime
 import random
 
 import tqdm
@@ -16,6 +17,13 @@ def phase5(inst: HGSimulationState) -> bool:
     if inst.state.get("last_phase", -1) >= 5:
         print("[bold]Phase 5 already completed, skipping.")
         return False
+
+    # Get the number of dats in the generation range, and find the midpoint
+    # as number of days from the start
+    days_in_range = \
+        (datetime.datetime.strptime(inst.job['generation']['date_range']['end'], "%Y-%m-%d") - \
+        datetime.datetime.strptime(inst.job['generation']['date_range']['start'], "%Y-%m-%d")).days
+    midpoint_days = int(days_in_range / 2)
 
     # Determine which hotels get gift shops
     # All resorts do
@@ -52,9 +60,18 @@ def phase5(inst: HGSimulationState) -> bool:
             break
 
         this_gs = giftshop.generate_giftshop(hotel)
+
+        # Set opening dates for each store
+        # All stores should be opened by halfway through the date range.
+        day_curve = (random.random() * 0.5) ** 3
+        days_since_start = day_curve * midpoint_days
+        start_date = datetime.datetime.strptime(inst.job['generation']['date_range']['start'], "%Y-%m-%d") += datetime.timedelta(days=days_since_start)
+        this_gs[0].date_opened = start_date
         inst.state['giftshops'].append(this_gs[0])
         inst.state['products'].extend(this_gs[1])
 
+   
+    
     inst.state['last_phase'] = 5
 
     return True
